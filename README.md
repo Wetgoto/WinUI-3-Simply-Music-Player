@@ -1,7 +1,15 @@
 # Music
 
+**Alpha 0.1 · 早期测试版**
+
+> [!WARNING]
+> 这是 **Alpha 0.1** 早期测试版本，功能和界面仍在快速调整，可能存在崩溃、播放异常、界面错位、配置或数据不兼容等问题。
+> 升级或试用前请先备份程序目录下的 `config` 和 `data`；不要把它作为唯一副本用于重要场景。
+
 一款使用 **WinUI 3 / Windows App SDK** 编写的本地音乐播放器：Fluent 深色界面、常驻播放条、可自定义播放列表，以及接近系统播放器的完整播放控制。
 
+![Version](https://img.shields.io/badge/version-Alpha%200.1-orange)
+![Status](https://img.shields.io/badge/status-early%20alpha-red)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![WinUI 3](https://img.shields.io/badge/WinUI-3-0067C0)
@@ -61,6 +69,8 @@
 | ![全窗口播放页](Music/Assets/screenshot-player.png) | ![自定义播放列表](Music/Assets/screenshot-custom-playlist.png) |
 
 ## 下载与运行
+
+> 当前发布的是 **Alpha 0.1** 早期测试版。遇到问题、崩溃或界面异常，欢迎到 [Issues](../../issues) 反馈。
 
 1. 打开本仓库的 [Releases](../../releases) 页面。
 2. 下载最新的 `Music-Player-Release-win-x64.zip` 并解压到任意文件夹。
@@ -201,9 +211,13 @@ Music-Player-GitHub/
 
 ## 已知限制
 
+> **Alpha 0.1** 是早期测试版本，以下只是已知问题的一部分，可能还有未列出的缺陷。
+
+- 功能、界面和配置文件格式仍可能调整，升级前请备份 `config` 和 `data`。
 - 任务栏缩略图工具栏在部分 Windows 11 桌面会话会返回 `E_ACCESSDENIED`，此时使用系统媒体卡片（SMTC）作为可用入口。
 - 随机播放和列表循环尚未实现。
 - 内置“默认列表”暂不支持重命名 / 删除，只有自定义播放列表支持。
+- 尚未提供自动更新，需要手动下载新版本覆盖。
 
 ## 排查
 
