@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>Music</RootNamespace>
+    <AssemblyName>Music</AssemblyName>
+    <ApplicationManifest>config\app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\App.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+    <!-- WinUI 3 -->
+    <UseWinUI>true</UseWinUI>
+
+    <!-- Unpackaged (no MSIX): the Windows App SDK is bundled next to the exe. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <NuGetAudit>false</NuGetAudit>
+    <DefaultItemExcludes>$(DefaultItemExcludes);dist\**;.publish\**;.publish-test\**;.publish-exact\**;.runtime\**;Music.exe;logs\**;config\playlist.json;data\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Taskbar\*.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="src\App.xaml" />
+    <ApplicationDefinition Include="src\App.xaml" />
+  </ItemGroup>
+
+  <!--
+    Windows App SDK copies one resource folder per supported UI language.
+    Keep Release output tidy by collecting those folders under language\.
+  -->
+  <Target
+    Name="OrganizeLanguageResources"
+    AfterTargets="Build"
+    Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true'">
+    <Exec
+      Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build\organize-language.ps1&quot; -OutputDirectory &quot;$(TargetDir).&quot;"
+      WorkingDirectory="$(MSBuildProjectDirectory)"
+      StandardOutputImportance="Low" />
+  </Target>
+
+  <Target
+    Name="OrganizePublishedLanguageResources"
+    AfterTargets="Publish"
+    Condition="'$(Configuration)' == 'Release' and '$(PublishDir)' != ''">
+    <Exec
+      Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build\organize-language.ps1&quot; -OutputDirectory &quot;$(PublishDir).&quot;"
+      WorkingDirectory="$(MSBuildProjectDirectory)"
+      StandardOutputImportance="Low" />
+  </Target>
+
+</Project>

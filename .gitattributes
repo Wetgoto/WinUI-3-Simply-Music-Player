@@ -1,0 +1,15 @@
+* text=auto
+
+# Windows scripts should keep CRLF so they run correctly after cloning.
+*.cmd   text eol=crlf
+*.bat   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binary assets
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+*.exe   binary
+*.dll   binary
+*.pri   binary
