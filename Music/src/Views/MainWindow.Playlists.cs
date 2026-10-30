@@ -295,12 +295,12 @@ public sealed partial class MainWindow
 
         _selectedNavButton = item.Button;
         _selectedCustomPlaylist = item;
-        item.Button.Background = new SolidColorBrush(
-            Windows.UI.Color.FromArgb(36, 255, 255, 255));
+        item.Button.Background = CreateNavSelectionBrush();
 
         MainWorkspace.Visibility = Visibility.Collapsed;
         RecentPage.Visibility = Visibility.Collapsed;
         CustomPlaylistPage.Visibility = Visibility.Visible;
+        SettingsPage.Visibility = Visibility.Collapsed;
         CustomPlaylistTitleText.Text = item.Name;
         CustomSearchBox.Text = string.Empty;
         CustomSearchBox.Visibility = Visibility.Collapsed;
@@ -439,8 +439,7 @@ public sealed partial class MainWindow
         }
 
         CustomSearchBox.Visibility = Visibility.Visible;
-        CustomSearchButton.Background = new SolidColorBrush(
-            Windows.UI.Color.FromArgb(30, 255, 255, 255));
+        CustomSearchButton.Background = CreateNavSelectionBrush();
         CustomSearchBox.Focus(FocusState.Programmatic);
     }
 

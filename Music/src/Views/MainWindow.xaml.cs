@@ -75,10 +75,10 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         _selectedNavButton = DefaultPlaylistButton;
-        DefaultPlaylistButton.Background = new SolidColorBrush(Color.FromArgb(36, 255, 255, 255));
+        DefaultPlaylistButton.Background = CreateNavSelectionBrush();
         LoadCustomPlaylists();
 
-        Title = "Music";
+        Title = "Simple Music Player";
         if (DesktopAcrylicController.IsSupported())
         {
             SystemBackdrop = new DesktopAcrylicBackdrop();
@@ -91,14 +91,16 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleBarDragRegion);
         AppWindow.Title = Title;
-        ApplyNativeTitleBarTheme();
-        ApplyCustomTitleBarTheme();
+        InitializeSettings();
 
         QueueList.ItemsSource = _visibleQueue;
         QueueList.ContainerContentChanging += QueueList_ContainerContentChanging;
         RecentList.ItemsSource = _visibleRecentTracks;
+        RecentList.ContainerContentChanging += QueueList_ContainerContentChanging;
         CustomPlaylistList.ItemsSource = _visibleCustomPlaylistTracks;
+        CustomPlaylistList.ContainerContentChanging += QueueList_ContainerContentChanging;
         SearchList.ItemsSource = _searchResults;
+        SearchList.ContainerContentChanging += QueueList_ContainerContentChanging;
 
         // Catch right-taps even if a ListViewItem already handled the event.
         QueueList.AddHandler(
@@ -196,15 +198,15 @@ public sealed partial class MainWindow : Window
         ref int value,
         int valueSize);
 
-    private void ApplyNativeTitleBarTheme()
+    private void ApplyNativeTitleBarTheme(bool dark)
     {
         var hwnd = WindowNative.GetWindowHandle(this);
-        var dark = 1;
+        var value = dark ? 1 : 0;
 
         // DWMWA_USE_IMMERSIVE_DARK_MODE (20 on current Windows, 19 on older builds).
-        if (DwmSetWindowAttribute(hwnd, 20, ref dark, sizeof(int)) != 0)
+        if (DwmSetWindowAttribute(hwnd, 20, ref value, sizeof(int)) != 0)
         {
-            DwmSetWindowAttribute(hwnd, 19, ref dark, sizeof(int));
+            DwmSetWindowAttribute(hwnd, 19, ref value, sizeof(int));
         }
 
         // DWMWA_SYSTEMBACKDROP_TYPE = 3 (transient window / Acrylic).
@@ -212,20 +214,31 @@ public sealed partial class MainWindow : Window
         DwmSetWindowAttribute(hwnd, 38, ref acrylicBackdrop, sizeof(int));
     }
 
-    private void ApplyCustomTitleBarTheme()
+    private void ApplyCustomTitleBarTheme(bool dark)
     {
         var titleBar = AppWindow.TitleBar;
         var transparent = Color.FromArgb(0, 0, 0, 0);
-        var foreground = Color.FromArgb(255, 255, 255, 255);
+        var foreground = dark
+            ? Color.FromArgb(255, 255, 255, 255)
+            : Color.FromArgb(255, 17, 17, 17);
+        var inactiveForeground = dark
+            ? Color.FromArgb(150, 255, 255, 255)
+            : Color.FromArgb(150, 0, 0, 0);
+        var hoverBackground = dark
+            ? Color.FromArgb(28, 255, 255, 255)
+            : Color.FromArgb(20, 0, 0, 0);
+        var pressedBackground = dark
+            ? Color.FromArgb(44, 255, 255, 255)
+            : Color.FromArgb(32, 0, 0, 0);
 
         titleBar.ButtonBackgroundColor = transparent;
         titleBar.ButtonInactiveBackgroundColor = transparent;
         titleBar.ButtonForegroundColor = foreground;
         titleBar.ButtonHoverForegroundColor = foreground;
         titleBar.ButtonPressedForegroundColor = foreground;
-        titleBar.ButtonInactiveForegroundColor = Color.FromArgb(150, 255, 255, 255);
-        titleBar.ButtonHoverBackgroundColor = Color.FromArgb(28, 255, 255, 255);
-        titleBar.ButtonPressedBackgroundColor = Color.FromArgb(44, 255, 255, 255);
+        titleBar.ButtonInactiveForegroundColor = inactiveForeground;
+        titleBar.ButtonHoverBackgroundColor = hoverBackground;
+        titleBar.ButtonPressedBackgroundColor = pressedBackground;
     }
 
     private void PlayerPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -765,7 +778,7 @@ public sealed partial class MainWindow : Window
         }
 
         RecentSearchBox.Visibility = Visibility.Visible;
-        RecentSearchButton.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255));
+        RecentSearchButton.Background = CreateNavSelectionBrush();
         RecentSearchBox.Focus(FocusState.Programmatic);
     }
 
@@ -869,7 +882,7 @@ public sealed partial class MainWindow : Window
         }
 
         _selectedNavButton = button;
-        button.Background = new SolidColorBrush(Color.FromArgb(36, 255, 255, 255));
+        button.Background = CreateNavSelectionBrush();
         _selectedCustomPlaylist = null;
 
         if (key == "default")
@@ -877,6 +890,7 @@ public sealed partial class MainWindow : Window
             MainWorkspace.Visibility = Visibility.Visible;
             RecentPage.Visibility = Visibility.Collapsed;
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
+            SettingsPage.Visibility = Visibility.Collapsed;
             DefaultListTitleText.Text = "默认列表";
             return;
         }
@@ -888,7 +902,17 @@ public sealed partial class MainWindow : Window
             MainWorkspace.Visibility = Visibility.Collapsed;
             RecentPage.Visibility = Visibility.Visible;
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
+            SettingsPage.Visibility = Visibility.Collapsed;
             return;
+        }
+
+        if (key == "settings")
+        {
+            MainWorkspace.Visibility = Visibility.Collapsed;
+            RecentPage.Visibility = Visibility.Collapsed;
+            CustomPlaylistPage.Visibility = Visibility.Collapsed;
+            SearchPage.Visibility = Visibility.Collapsed;
+            SettingsPage.Visibility = Visibility.Visible;
         }
     }
 
@@ -908,7 +932,7 @@ public sealed partial class MainWindow : Window
         }
 
         SearchBox.Visibility = Visibility.Visible;
-        SearchButton.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255));
+        SearchButton.Background = CreateNavSelectionBrush();
         SearchBox.Focus(FocusState.Programmatic);
     }
 
@@ -1697,7 +1721,7 @@ public sealed partial class MainWindow : Window
 
     private async void QueuePlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: Track track })
+        if (GetActionTrack(sender) is { } track)
         {
             await PlayTrackFromUiAsync(track);
         }
@@ -1705,7 +1729,7 @@ public sealed partial class MainWindow : Window
 
     private async void QueueFavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: Track track })
+        if (GetActionTrack(sender) is not { } track)
         {
             return;
         }
@@ -1729,7 +1753,7 @@ public sealed partial class MainWindow : Window
 
     private void QueueAddButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: Track track } element)
+        if (sender is FrameworkElement element && GetActionTrack(sender) is { } track)
         {
             ShowAddToPlaylistFlyout(element, track);
         }
@@ -1737,7 +1761,7 @@ public sealed partial class MainWindow : Window
 
     private void QueueMoreButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: Track track } element)
+        if (sender is not FrameworkElement element || GetActionTrack(sender) is not { } track)
         {
             return;
         }
@@ -1750,13 +1774,29 @@ public sealed partial class MainWindow : Window
             Icon = new FontIcon { Glyph = "\uE768" }
         };
         playItem.Click += async (_, _) => await PlayTrackFromUiAsync(track);
+        flyout.Items.Add(playItem);
 
-        var removeItem = new MenuFlyoutItem
+        if (_queue.Any(candidate =>
+                string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase)))
         {
-            Text = "移除",
-            Icon = new FontIcon { Glyph = "\uE74D" }
-        };
-        removeItem.Click += (_, _) => RemoveTrack(track);
+            var removeItem = new MenuFlyoutItem
+            {
+                Text = "从默认列表移除",
+                Icon = new FontIcon { Glyph = "\uE74D" }
+            };
+            removeItem.Click += (_, _) => RemoveTrack(track);
+            flyout.Items.Add(removeItem);
+        }
+        else
+        {
+            var addItem = new MenuFlyoutItem
+            {
+                Text = "添加到默认列表",
+                Icon = new FontIcon { Glyph = "\uE710" }
+            };
+            addItem.Click += (_, _) => AddSearchResultToQueue(track);
+            flyout.Items.Add(addItem);
+        }
 
         var detailsItem = new MenuFlyoutItem
         {
@@ -1764,11 +1804,24 @@ public sealed partial class MainWindow : Window
             Icon = new FontIcon { Glyph = "\uE946" }
         };
         detailsItem.Click += async (_, _) => await ShowTrackDetailsAsync(track);
-
-        flyout.Items.Add(playItem);
-        flyout.Items.Add(removeItem);
         flyout.Items.Add(detailsItem);
+
         flyout.ShowAt(element);
+    }
+
+    private static Track? GetActionTrack(object sender)
+    {
+        if (sender is not FrameworkElement element)
+        {
+            return null;
+        }
+
+        return element.DataContext switch
+        {
+            Track track => track,
+            SearchResult result => result.Track,
+            _ => element.Tag as Track
+        };
     }
 
     private void FavoriteButton_Click(object sender, RoutedEventArgs e)
@@ -1973,6 +2026,21 @@ public sealed partial class MainWindow : Window
 
     private async Task PlayTrackFromUiAsync(Track track)
     {
+        var queued = _queue.FirstOrDefault(candidate =>
+            string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase));
+
+        if (queued is null)
+        {
+            _queue.Add(track);
+            _knownPaths.Add(track.Path);
+            RefreshQueueUi();
+            PersistPlaylist();
+        }
+        else
+        {
+            track = queued;
+        }
+
         if (track.IsMissing)
         {
             if (!File.Exists(track.Path))

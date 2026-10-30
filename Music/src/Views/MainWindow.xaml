@@ -139,6 +139,428 @@
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
             </Style>
+
+            <!-- Shared look for every track list: default list, recent, custom playlists. -->
+            <Style x:Key="TrackRowContainerStyle" TargetType="ListViewItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0,1" />
+                <Setter Property="MinHeight" Value="68" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Grid
+                                x:Name="ItemRoot"
+                                Background="Transparent"
+                                CornerRadius="10">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Selected">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOverSelected">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="PressedSelected">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="1"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverLayer"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.08" />
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SelectionIndicator"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.08" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <Border
+                                    x:Name="HoverLayer"
+                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                    CornerRadius="10"
+                                    IsHitTestVisible="False"
+                                    Opacity="0" />
+
+                                <Border
+                                    x:Name="SelectionIndicator"
+                                    Width="3"
+                                    Height="40"
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    CornerRadius="2"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    IsHitTestVisible="False"
+                                    Visibility="Collapsed"
+                                    Opacity="0" />
+
+                                <ContentPresenter
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
+                                    Padding="{TemplateBinding Padding}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <DataTemplate x:Key="TrackRowTemplate" x:DataType="models:Track">
+                <Grid
+                    Padding="10,6"
+                    ColumnSpacing="10"
+                    Opacity="{x:Bind RowOpacity, Mode=OneWay}"
+                    AutomationProperties.Name="{x:Bind QueueTitle, Mode=OneWay}"
+                    AutomationProperties.HelpText="{x:Bind DetailsLine, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="240" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="112" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border
+                        Grid.ColumnSpan="4"
+                        Margin="-10,-6,-10,-6"
+                        CornerRadius="10"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        Visibility="{x:Bind CurrentVisibility, Mode=OneWay}"
+                        IsHitTestVisible="False" />
+                    <Border
+                        Width="3"
+                        Height="40"
+                        Margin="-5,0,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        CornerRadius="2"
+                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        Visibility="{x:Bind CurrentVisibility, Mode=OneWay}"
+                        IsHitTestVisible="False" />
+
+                    <Grid
+                        Grid.Column="0"
+                        Width="56"
+                        Height="56">
+                        <Border
+                            CornerRadius="10"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}" />
+                        <FontIcon
+                            Glyph="&#xE8D6;"
+                            FontSize="22"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
+                        <Border
+                            CornerRadius="10"
+                            Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
+                            <Border.Background>
+                                <ImageBrush
+                                    ImageSource="{x:Bind Artwork, Mode=OneWay}"
+                                    Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Spacing="3"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            Text="{x:Bind QueueTitle, Mode=OneWay}"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1" />
+                        <TextBlock
+                            Text="{x:Bind RecentSubtitle, Mode=OneWay}"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1" />
+                    </StackPanel>
+
+                    <StackPanel
+                        x:Name="QueueActionsPanel"
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Opacity="0"
+                        IsHitTestVisible="False">
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueuePlayButton_Click"
+                            ToolTipService.ToolTip="播放"
+                            AutomationProperties.Name="播放">
+                            <FontIcon Glyph="&#xE768;" FontSize="13" />
+                        </Button>
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueueFavoriteButton_Click"
+                            ToolTipService.ToolTip="{x:Bind FavoriteToolTip, Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind FavoriteToolTip, Mode=OneWay}">
+                            <FontIcon Glyph="{x:Bind FavoriteGlyph, Mode=OneWay}" FontSize="13" />
+                        </Button>
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueueAddButton_Click"
+                            ToolTipService.ToolTip="添加到播放列表"
+                            AutomationProperties.Name="添加到播放列表">
+                            <FontIcon Glyph="&#xE710;" FontSize="13" />
+                        </Button>
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueueMoreButton_Click"
+                            ToolTipService.ToolTip="更多选项"
+                            AutomationProperties.Name="更多选项">
+                            <FontIcon Glyph="&#xE712;" FontSize="13" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="3"
+                        Spacing="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            Text="{x:Bind DurationText, Mode=OneWay}"
+                            FontSize="14"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock
+                            Text="{x:Bind FileInfoText, Mode=OneWay}"
+                            FontSize="11"
+                            HorizontalAlignment="Right"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </DataTemplate>
+
+            <!-- Search results keep the same row rhythm, with the source playlists on the right. -->
+            <DataTemplate x:Key="SearchRowTemplate" x:DataType="models:SearchResult">
+                <Grid
+                    Padding="10,6"
+                    ColumnSpacing="10"
+                    Opacity="{x:Bind RowOpacity, Mode=OneWay}"
+                    AutomationProperties.Name="{x:Bind QueueTitle, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="240" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="170" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border
+                        Grid.ColumnSpan="4"
+                        Margin="-10,-6,-10,-6"
+                        CornerRadius="10"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        Visibility="{x:Bind Track.CurrentVisibility, Mode=OneWay}"
+                        IsHitTestVisible="False" />
+                    <Border
+                        Width="3"
+                        Height="40"
+                        Margin="-5,0,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        CornerRadius="2"
+                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        Visibility="{x:Bind Track.CurrentVisibility, Mode=OneWay}"
+                        IsHitTestVisible="False" />
+
+                    <Grid
+                        Grid.Column="0"
+                        Width="56"
+                        Height="56">
+                        <Border
+                            CornerRadius="10"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}" />
+                        <FontIcon
+                            Glyph="&#xE8D6;"
+                            FontSize="22"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
+                        <Border
+                            CornerRadius="10"
+                            Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
+                            <Border.Background>
+                                <ImageBrush
+                                    ImageSource="{x:Bind Artwork, Mode=OneWay}"
+                                    Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Spacing="3"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            Text="{x:Bind QueueTitle, Mode=OneWay}"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1" />
+                        <TextBlock
+                            Text="{x:Bind Subtitle, Mode=OneWay}"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1" />
+                    </StackPanel>
+
+                    <StackPanel
+                        x:Name="QueueActionsPanel"
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Opacity="0"
+                        IsHitTestVisible="False">
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueuePlayButton_Click"
+                            ToolTipService.ToolTip="播放"
+                            AutomationProperties.Name="播放">
+                            <FontIcon Glyph="&#xE768;" FontSize="13" />
+                        </Button>
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueueFavoriteButton_Click"
+                            ToolTipService.ToolTip="{x:Bind Track.FavoriteToolTip, Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind Track.FavoriteToolTip, Mode=OneWay}">
+                            <FontIcon Glyph="{x:Bind Track.FavoriteGlyph, Mode=OneWay}" FontSize="13" />
+                        </Button>
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueueAddButton_Click"
+                            ToolTipService.ToolTip="添加到播放列表"
+                            AutomationProperties.Name="添加到播放列表">
+                            <FontIcon Glyph="&#xE710;" FontSize="13" />
+                        </Button>
+                        <Button
+                            Style="{StaticResource QueueActionButtonStyle}"
+                            Click="QueueMoreButton_Click"
+                            ToolTipService.ToolTip="更多选项"
+                            AutomationProperties.Name="更多选项">
+                            <FontIcon Glyph="&#xE712;" FontSize="13" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="3"
+                        Spacing="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            Text="{x:Bind TrailingText, Mode=OneWay}"
+                            FontSize="14"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock
+                            Text="{x:Bind SourceText}"
+                            FontSize="11"
+                            HorizontalAlignment="Right"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </DataTemplate>
         </Grid.Resources>
 
         <Grid.Background>
@@ -219,7 +641,7 @@
                             Margin="0,-2,0,0" />
                     </Border>
                     <TextBlock
-                        Text="Music"
+                        Text="Simple Music Player"
                         FontSize="13"
                         FontWeight="SemiBold"
                         VerticalAlignment="Center" />
@@ -240,6 +662,7 @@
                     <RowDefinition Height="72" />
                     <RowDefinition Height="44" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- App identity -->
@@ -269,11 +692,14 @@
                         </Border>
                         <StackPanel
                             VerticalAlignment="Center"
-                            Spacing="1">
+                            Spacing="1"
+                            MaxWidth="176">
                             <TextBlock
-                                Text="Music"
-                                FontSize="18"
-                                FontWeight="SemiBold" />
+                                Text="Simple Music Player"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                TextTrimming="CharacterEllipsis"
+                                MaxLines="1" />
                             <TextBlock
                                 Text="本地音乐"
                                 FontSize="11"
@@ -363,6 +789,25 @@
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
+
+                <Border
+                    Grid.Row="3"
+                    Margin="0,8,0,0"
+                    Padding="0,8,0,0"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0">
+                    <Button
+                        x:Name="SettingsNavButton"
+                        Style="{StaticResource SidebarNavButtonStyle}"
+                        Tag="settings"
+                        Click="SidebarNavButton_Click"
+                        AutomationProperties.Name="设置">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xE713;" FontSize="16" />
+                            <TextBlock Text="设置" FontSize="13" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </Border>
             </Grid>
         </Border>
 
@@ -1338,95 +1783,9 @@
                             Padding="6"
                             SelectionMode="Single"
                             DoubleTapped="RecentList_DoubleTapped"
-                            AutomationProperties.Name="最近播放的曲目">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Padding" Value="0" />
-                                    <Setter Property="Margin" Value="0,1" />
-                                    <Setter Property="MinHeight" Value="64" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="models:Track">
-                                    <Grid
-                                        Padding="10,6"
-                                        ColumnSpacing="10"
-                                        Opacity="{x:Bind RowOpacity, Mode=OneWay}"
-                                        ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}"
-                                        AutomationProperties.Name="{x:Bind QueueTitle, Mode=OneWay}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Grid
-                                            Grid.Column="0"
-                                            Width="52"
-                                            Height="52">
-                                            <Border
-                                                CornerRadius="10"
-                                                Background="{ThemeResource ControlFillColorSecondaryBrush}" />
-                                            <FontIcon
-                                                Glyph="&#xE8D6;"
-                                                FontSize="20"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
-                                            <Border
-                                                CornerRadius="10"
-                                                Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
-                                                <Border.Background>
-                                                    <ImageBrush
-                                                        ImageSource="{x:Bind Artwork, Mode=OneWay}"
-                                                        Stretch="UniformToFill" />
-                                                </Border.Background>
-                                            </Border>
-                                        </Grid>
-
-                                        <StackPanel
-                                            Grid.Column="1"
-                                            Spacing="3"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind QueueTitle, Mode=OneWay}"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                            <TextBlock
-                                                Text="{x:Bind RecentSubtitle, Mode=OneWay}"
-                                                FontSize="11"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="2"
-                                            Spacing="2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind TrailingText, Mode=OneWay}"
-                                                FontSize="13"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock
-                                                Text="{x:Bind FileInfoText, Mode=OneWay}"
-                                                FontSize="10"
-                                                HorizontalAlignment="Right"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
+                            AutomationProperties.Name="最近播放的曲目"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource TrackRowTemplate}">
                         </ListView>
 
                         <StackPanel
@@ -1604,95 +1963,9 @@
                             Padding="6"
                             SelectionMode="Single"
                             DoubleTapped="CustomPlaylistList_DoubleTapped"
-                            AutomationProperties.Name="当前播放列表曲目">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Padding" Value="0" />
-                                    <Setter Property="Margin" Value="0,1" />
-                                    <Setter Property="MinHeight" Value="64" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="models:Track">
-                                    <Grid
-                                        Padding="10,6"
-                                        ColumnSpacing="10"
-                                        Opacity="{x:Bind RowOpacity, Mode=OneWay}"
-                                        ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}"
-                                        AutomationProperties.Name="{x:Bind QueueTitle, Mode=OneWay}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Grid
-                                            Grid.Column="0"
-                                            Width="52"
-                                            Height="52">
-                                            <Border
-                                                CornerRadius="10"
-                                                Background="{ThemeResource ControlFillColorSecondaryBrush}" />
-                                            <FontIcon
-                                                Glyph="&#xE8D6;"
-                                                FontSize="20"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
-                                            <Border
-                                                CornerRadius="10"
-                                                Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
-                                                <Border.Background>
-                                                    <ImageBrush
-                                                        ImageSource="{x:Bind Artwork, Mode=OneWay}"
-                                                        Stretch="UniformToFill" />
-                                                </Border.Background>
-                                            </Border>
-                                        </Grid>
-
-                                        <StackPanel
-                                            Grid.Column="1"
-                                            Spacing="3"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind QueueTitle, Mode=OneWay}"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                            <TextBlock
-                                                Text="{x:Bind RecentSubtitle, Mode=OneWay}"
-                                                FontSize="11"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="2"
-                                            Spacing="2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind TrailingText, Mode=OneWay}"
-                                                FontSize="13"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock
-                                                Text="{x:Bind FileInfoText, Mode=OneWay}"
-                                                FontSize="10"
-                                                HorizontalAlignment="Right"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
+                            AutomationProperties.Name="当前播放列表曲目"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource TrackRowTemplate}">
                         </ListView>
 
                         <StackPanel
@@ -1866,104 +2139,9 @@
                             Padding="6"
                             SelectionMode="Single"
                             DoubleTapped="SearchList_DoubleTapped"
-                            AutomationProperties.Name="搜索结果">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Padding" Value="0" />
-                                    <Setter Property="Margin" Value="0,1" />
-                                    <Setter Property="MinHeight" Value="68" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="models:SearchResult">
-                                    <Grid
-                                        Padding="10,6"
-                                        ColumnSpacing="10"
-                                        Opacity="{x:Bind RowOpacity, Mode=OneWay}"
-                                        ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}"
-                                        AutomationProperties.Name="{x:Bind QueueTitle, Mode=OneWay}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Grid
-                                            Grid.Column="0"
-                                            Width="52"
-                                            Height="52">
-                                            <Border
-                                                CornerRadius="10"
-                                                Background="{ThemeResource ControlFillColorSecondaryBrush}" />
-                                            <FontIcon
-                                                Glyph="&#xE8D6;"
-                                                FontSize="20"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
-                                            <Border
-                                                CornerRadius="10"
-                                                Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
-                                                <Border.Background>
-                                                    <ImageBrush
-                                                        ImageSource="{x:Bind Artwork, Mode=OneWay}"
-                                                        Stretch="UniformToFill" />
-                                                </Border.Background>
-                                            </Border>
-                                        </Grid>
-
-                                        <StackPanel
-                                            Grid.Column="1"
-                                            Spacing="3"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind QueueTitle, Mode=OneWay}"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                            <TextBlock
-                                                Text="{x:Bind Subtitle, Mode=OneWay}"
-                                                FontSize="11"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                            <StackPanel
-                                                Orientation="Horizontal"
-                                                Spacing="5"
-                                                VerticalAlignment="Center">
-                                                <FontIcon
-                                                    Glyph="&#xE8FD;"
-                                                    FontSize="10"
-                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                    VerticalAlignment="Center" />
-                                                <TextBlock
-                                                    Text="{x:Bind SourceText}"
-                                                    FontSize="10"
-                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                    TextTrimming="CharacterEllipsis"
-                                                    MaxLines="1" />
-                                            </StackPanel>
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="2"
-                                            Spacing="2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind TrailingText, Mode=OneWay}"
-                                                FontSize="13"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
+                            AutomationProperties.Name="搜索结果"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource SearchRowTemplate}">
                         </ListView>
 
                         <StackPanel
@@ -1995,6 +2173,200 @@
                     </Grid>
                 </Border>
             </Grid>
+        </Grid>
+
+        <!-- Settings page -->
+        <Grid
+            x:Name="SettingsPage"
+            Grid.Row="1"
+            Grid.Column="1"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="66" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Grid.Row="0"
+                Background="Transparent"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+                <Grid Padding="24,0">
+                    <StackPanel
+                        VerticalAlignment="Center"
+                        Spacing="1">
+                        <TextBlock
+                            Text="设置"
+                            FontSize="22"
+                            FontWeight="SemiBold" />
+                        <TextBlock
+                            Text="应用语言、界面主题与版本信息"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ScrollViewer
+                Grid.Row="1"
+                Padding="24,16,24,24"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled">
+                <StackPanel
+                    Spacing="16"
+                    MaxWidth="820"
+                    HorizontalAlignment="Left">
+                    <Border
+                        CornerRadius="14"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                        <StackPanel Padding="20,4">
+                            <Grid Padding="0,14" ColumnSpacing="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    Spacing="3"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        Text="应用语言"
+                                        FontSize="14"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Text="当前版本仅提供简体中文，更多语言将在后续版本加入。"
+                                        FontSize="12"
+                                        TextWrapping="Wrap"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+
+                                <ComboBox
+                                    x:Name="LanguageComboBox"
+                                    Grid.Column="1"
+                                    Width="200"
+                                    VerticalAlignment="Center"
+                                    SelectionChanged="LanguageComboBox_SelectionChanged"
+                                    AutomationProperties.Name="应用语言">
+                                    <ComboBoxItem Content="简体中文" />
+                                </ComboBox>
+                            </Grid>
+
+                            <Border
+                                Height="1"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                            <Grid Padding="0,14" ColumnSpacing="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    Spacing="3"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        Text="界面主题"
+                                        FontSize="14"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Text="选择浅色、深色，或跟随 Windows 系统设置。"
+                                        FontSize="12"
+                                        TextWrapping="Wrap"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+
+                                <ComboBox
+                                    x:Name="ThemeComboBox"
+                                    Grid.Column="1"
+                                    Width="200"
+                                    SelectedIndex="0"
+                                    VerticalAlignment="Center"
+                                    SelectionChanged="ThemeComboBox_SelectionChanged"
+                                    AutomationProperties.Name="界面主题">
+                                    <ComboBoxItem Content="跟随系统" />
+                                    <ComboBoxItem Content="浅色" />
+                                    <ComboBoxItem Content="深色" />
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock
+                        Text="关于"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Margin="4,4,0,0" />
+
+                    <Border
+                        CornerRadius="14"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                        <StackPanel Padding="20" Spacing="12">
+                            <Grid ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Width="48"
+                                    Height="48"
+                                    CornerRadius="12"
+                                    Background="White">
+                                    <TextBlock
+                                        Text="♪"
+                                        FontFamily="Segoe UI Symbol"
+                                        FontSize="28"
+                                        Foreground="#111111"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Margin="0,-3,0,0" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Spacing="2">
+                                    <TextBlock
+                                        Text="Simple Music Player"
+                                        FontSize="16"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        x:Name="AppVersionText"
+                                        Text="Alpha 0.2"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock
+                                x:Name="AppVersionDetailText"
+                                Text="版本 0.2.0-alpha · WinUI 3 · .NET 10"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock
+                                x:Name="AppVersionTechText"
+                                Text="Windows App SDK 1.8 · MIT License"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <TextBlock
+                                Text="© 2026 Wetgoto · 本地音乐播放器"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+
+                            <HyperlinkButton
+                                Content="GitHub 仓库"
+                                NavigateUri="https://github.com/Wetgoto/WinUI-3-Simply-Music-Player"
+                                Padding="0"
+                                FontSize="12" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <!-- Full-window player page -->
