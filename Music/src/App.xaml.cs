@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
 using Music.Services;
@@ -47,9 +48,13 @@ public partial class App : Application
         {
             var logPath = Path.Combine(AppPaths.LogsDirectory, "startup-error.log");
             Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+            var assembly = typeof(App).Assembly;
+            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                ?? assembly.GetName().Version?.ToString()
+                ?? "unknown";
             File.AppendAllText(
                 logPath,
-                $"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz}]{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}");
+                $"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz}] v{version}{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}");
         }
         catch
         {
@@ -57,4 +62,3 @@ public partial class App : Application
         }
     }
 }
-
