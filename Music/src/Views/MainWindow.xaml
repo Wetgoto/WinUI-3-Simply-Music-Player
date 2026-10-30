@@ -151,6 +151,7 @@
 
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="ImportAccelerator_Invoked" />
+            <KeyboardAccelerator Key="F" Modifiers="Control" Invoked="SearchAccelerator_Invoked" />
             <KeyboardAccelerator Key="Space" Invoked="PlayPauseAccelerator_Invoked" />
             <KeyboardAccelerator Key="Left" Modifiers="Menu" Invoked="BackAccelerator_Invoked" />
         </Grid.KeyboardAccelerators>
@@ -281,32 +282,25 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Search entry -->
-                <Button
-                    x:Name="SidebarSearchButton"
+                <!-- Global search entry -->
+                <AutoSuggestBox
+                    x:Name="SidebarSearchBox"
                     Grid.Row="1"
                     Height="36"
                     Margin="0,0,0,4"
                     Padding="10,0"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
+                    VerticalAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    FontSize="12"
+                    CornerRadius="8"
                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
-                    Click="SidebarSearchButton_Click"
-                    AutomationProperties.Name="搜索">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon
-                            Glyph="&#xE721;"
-                            FontSize="14"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        <TextBlock
-                            Text="搜索"
-                            FontSize="12"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
-                </Button>
+                    PlaceholderText="搜索全部音乐"
+                    QueryIcon="Find"
+                    TextChanged="SidebarSearchBox_TextChanged"
+                    KeyDown="SidebarSearchBox_KeyDown"
+                    AutomationProperties.Name="搜索所有播放列表" />
 
                 <!-- Navigation tabs -->
                 <ScrollViewer
@@ -1110,6 +1104,24 @@
                                 Spacing="10"
                                 VerticalAlignment="Center">
                                 <Button
+                                    x:Name="RepeatButton"
+                                    Width="34"
+                                    Height="34"
+                                    Padding="0"
+                                    CornerRadius="17"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="RepeatButton_Click"
+                                    ToolTipService.ToolTip="循环播放：关闭"
+                                    AutomationProperties.Name="循环播放">
+                                    <FontIcon
+                                        x:Name="RepeatIcon"
+                                        Glyph="&#xE8EE;"
+                                        FontSize="16"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+
+                                <Button
                                     x:Name="PreviousButton"
                                     Width="38"
                                     Height="38"
@@ -1780,6 +1792,211 @@
             </Border>
         </Grid>
 
+        <!-- Global search results page -->
+        <Grid
+            x:Name="SearchPage"
+            Grid.Row="1"
+            Grid.Column="1"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="66" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Grid.Row="0"
+                Background="Transparent"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+                <Grid Padding="24,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Spacing="1">
+                        <TextBlock
+                            Text="搜索"
+                            FontSize="22"
+                            FontWeight="SemiBold" />
+                        <TextBlock
+                            x:Name="SearchCountText"
+                            Text="搜索范围：所有播放列表"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        VerticalAlignment="Center">
+                        <Button
+                            x:Name="SearchClearButton"
+                            Width="36"
+                            Height="36"
+                            Padding="0"
+                            CornerRadius="8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="SearchClearButton_Click"
+                            ToolTipService.ToolTip="清除搜索"
+                            AutomationProperties.Name="清除搜索">
+                            <FontIcon Glyph="&#xE894;" FontSize="15" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid
+                Grid.Row="1"
+                Margin="20,12,20,16">
+                <Border
+                    CornerRadius="14"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                    <Grid>
+                        <ListView
+                            x:Name="SearchList"
+                            Padding="6"
+                            SelectionMode="Single"
+                            DoubleTapped="SearchList_DoubleTapped"
+                            AutomationProperties.Name="搜索结果">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0,1" />
+                                    <Setter Property="MinHeight" Value="68" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:SearchResult">
+                                    <Grid
+                                        Padding="10,6"
+                                        ColumnSpacing="10"
+                                        Opacity="{x:Bind RowOpacity, Mode=OneWay}"
+                                        ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}"
+                                        AutomationProperties.Name="{x:Bind QueueTitle, Mode=OneWay}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid
+                                            Grid.Column="0"
+                                            Width="52"
+                                            Height="52">
+                                            <Border
+                                                CornerRadius="10"
+                                                Background="{ThemeResource ControlFillColorSecondaryBrush}" />
+                                            <FontIcon
+                                                Glyph="&#xE8D6;"
+                                                FontSize="20"
+                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
+                                            <Border
+                                                CornerRadius="10"
+                                                Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
+                                                <Border.Background>
+                                                    <ImageBrush
+                                                        ImageSource="{x:Bind Artwork, Mode=OneWay}"
+                                                        Stretch="UniformToFill" />
+                                                </Border.Background>
+                                            </Border>
+                                        </Grid>
+
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Spacing="3"
+                                            VerticalAlignment="Center">
+                                            <TextBlock
+                                                Text="{x:Bind QueueTitle, Mode=OneWay}"
+                                                FontSize="14"
+                                                FontWeight="SemiBold"
+                                                TextTrimming="CharacterEllipsis"
+                                                MaxLines="1" />
+                                            <TextBlock
+                                                Text="{x:Bind Subtitle, Mode=OneWay}"
+                                                FontSize="11"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                TextTrimming="CharacterEllipsis"
+                                                MaxLines="1" />
+                                            <StackPanel
+                                                Orientation="Horizontal"
+                                                Spacing="5"
+                                                VerticalAlignment="Center">
+                                                <FontIcon
+                                                    Glyph="&#xE8FD;"
+                                                    FontSize="10"
+                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                    VerticalAlignment="Center" />
+                                                <TextBlock
+                                                    Text="{x:Bind SourceText}"
+                                                    FontSize="10"
+                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    MaxLines="1" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <StackPanel
+                                            Grid.Column="2"
+                                            Spacing="2"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center">
+                                            <TextBlock
+                                                Text="{x:Bind TrailingText, Mode=OneWay}"
+                                                FontSize="13"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <StackPanel
+                            x:Name="SearchNoResultsPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="10"
+                            MaxWidth="300"
+                            Visibility="Collapsed">
+                            <FontIcon
+                                Glyph="&#xE721;"
+                                FontSize="34"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <TextBlock
+                                x:Name="SearchNoResultsTitle"
+                                Text="没有找到匹配的曲目"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center" />
+                            <TextBlock
+                                x:Name="SearchNoResultsDetail"
+                                Text="换一个关键词，或检查播放列表里是否包含这首歌。"
+                                FontSize="12"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
         <!-- Full-window player page -->
         <Grid
             x:Name="PlayerPage"
@@ -1966,6 +2183,24 @@
                                     Orientation="Horizontal"
                                     Spacing="10"
                                     VerticalAlignment="Center">
+                                    <Button
+                                        x:Name="FullRepeatButton"
+                                        Width="34"
+                                        Height="34"
+                                        Padding="0"
+                                        CornerRadius="17"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="RepeatButton_Click"
+                                        ToolTipService.ToolTip="循环播放：关闭"
+                                        AutomationProperties.Name="循环播放">
+                                        <FontIcon
+                                            x:Name="FullRepeatIcon"
+                                            Glyph="&#xE8EE;"
+                                            FontSize="16"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Button>
+
                                     <Button
                                         x:Name="FullPreviousButton"
                                         Width="38"

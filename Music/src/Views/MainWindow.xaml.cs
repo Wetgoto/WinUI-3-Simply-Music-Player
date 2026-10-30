@@ -66,6 +66,10 @@ public sealed partial class MainWindow : Window
     private bool _isFavorite;
     private bool _playlistReady;
     private double _volumeBeforeMute = 65;
+    private RepeatMode _repeatMode = RepeatMode.None;
+    private Brush? _repeatIdleForeground;
+    private Brush? _fullRepeatIdleForeground;
+    private SolidColorBrush? _accentBrush;
 
     public MainWindow()
     {
@@ -94,11 +98,17 @@ public sealed partial class MainWindow : Window
         QueueList.ContainerContentChanging += QueueList_ContainerContentChanging;
         RecentList.ItemsSource = _visibleRecentTracks;
         CustomPlaylistList.ItemsSource = _visibleCustomPlaylistTracks;
+        SearchList.ItemsSource = _searchResults;
 
         // Catch right-taps even if a ListViewItem already handled the event.
         QueueList.AddHandler(
             UIElement.RightTappedEvent,
             new RightTappedEventHandler(QueueList_RightTapped),
+            true);
+
+        SearchList.AddHandler(
+            UIElement.RightTappedEvent,
+            new RightTappedEventHandler(SearchList_RightTapped),
             true);
 
         // Listen for drag events even when an inner control (such as the
@@ -171,6 +181,9 @@ public sealed partial class MainWindow : Window
         ResetNowPlaying();
         RefreshQueueUi();
         UpdateVolumeIcon();
+        _repeatIdleForeground = RepeatIcon.Foreground;
+        _fullRepeatIdleForeground = FullRepeatIcon.Foreground;
+        UpdateRepeatUi();
         SetStatus("正在准备播放列表…");
     }
 
@@ -848,6 +861,8 @@ public sealed partial class MainWindow : Window
 
     private void SelectSidebarNav(Button button, string key)
     {
+        ResetSidebarSearch();
+
         if (_selectedNavButton is not null && _selectedNavButton != button)
         {
             _selectedNavButton.Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
@@ -894,22 +909,6 @@ public sealed partial class MainWindow : Window
 
         SearchBox.Visibility = Visibility.Visible;
         SearchButton.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255));
-        SearchBox.Focus(FocusState.Programmatic);
-    }
-
-    private void SidebarSearchButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (MainWorkspace.Visibility != Visibility.Visible)
-        {
-            SelectSidebarNav(DefaultPlaylistButton, "default");
-        }
-
-        if (SearchBox.Visibility != Visibility.Visible)
-        {
-            SearchBox.Visibility = Visibility.Visible;
-            SearchButton.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255));
-        }
-
         SearchBox.Focus(FocusState.Programmatic);
     }
 
@@ -1809,6 +1808,72 @@ public sealed partial class MainWindow : Window
         VolumeButton_Click(sender, e);
     }
 
+    private void RepeatButton_Click(object sender, RoutedEventArgs e)
+    {
+        _repeatMode = _repeatMode switch
+        {
+            RepeatMode.None => RepeatMode.All,
+            RepeatMode.All => RepeatMode.One,
+            _ => RepeatMode.None
+        };
+
+        UpdateRepeatUi();
+        SetStatus(_repeatMode switch
+        {
+            RepeatMode.All => "循环播放：列表循环",
+            RepeatMode.One => "循环播放：单曲循环",
+            _ => "循环播放：关闭"
+        });
+    }
+
+    private void UpdateRepeatUi()
+    {
+        var glyph = _repeatMode == RepeatMode.One ? "\uE8ED" : "\uE8EE";
+        var accent = _repeatMode == RepeatMode.None ? null : GetAccentBrush();
+
+        RepeatIcon.Glyph = glyph;
+        FullRepeatIcon.Glyph = glyph;
+        RepeatIcon.Foreground = accent ?? _repeatIdleForeground;
+        FullRepeatIcon.Foreground = accent ?? _fullRepeatIdleForeground;
+
+        var label = _repeatMode switch
+        {
+            RepeatMode.All => "循环播放：列表循环",
+            RepeatMode.One => "循环播放：单曲循环",
+            _ => "循环播放：关闭"
+        };
+        var hint = _repeatMode switch
+        {
+            RepeatMode.None => "点击开启列表循环",
+            RepeatMode.All => "点击切换为单曲循环",
+            _ => "点击关闭循环播放"
+        };
+
+        ToolTipService.SetToolTip(RepeatButton, $"{label} · {hint}");
+        ToolTipService.SetToolTip(FullRepeatButton, $"{label} · {hint}");
+        AutomationProperties.SetName(RepeatButton, label);
+        AutomationProperties.SetName(FullRepeatButton, label);
+    }
+
+    private SolidColorBrush? GetAccentBrush()
+    {
+        if (_accentBrush is not null)
+        {
+            return _accentBrush;
+        }
+
+        try
+        {
+            _accentBrush = new SolidColorBrush(new UISettings().GetColorValue(UIColorType.Accent));
+        }
+        catch
+        {
+            // Fall back to the normal foreground when the system accent is unavailable.
+        }
+
+        return _accentBrush;
+    }
+
     private void PreviousButton_Click(object sender, RoutedEventArgs e)
     {
         if (_currentTrack is null)
@@ -1824,15 +1889,26 @@ public sealed partial class MainWindow : Window
 
         var index = _queue.IndexOf(_currentTrack);
         var previous = index > 0 ? FindPlayable(index - 1, -1) : null;
-        if (previous is not null)
+        if (previous is null && _repeatMode == RepeatMode.All)
         {
-            LoadTrack(previous, autoPlay: true);
+            previous = FindPlayable(_queue.Count - 1, -1);
         }
-        else
+
+        if (previous is null)
         {
             _player.PlaybackSession.Position = TimeSpan.Zero;
             SetStatus("已经是队列第一首");
+            return;
         }
+
+        if (ReferenceEquals(previous, _currentTrack))
+        {
+            _player.PlaybackSession.Position = TimeSpan.Zero;
+            _player.Play();
+            return;
+        }
+
+        LoadTrack(previous, autoPlay: true);
     }
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
@@ -1853,7 +1929,12 @@ public sealed partial class MainWindow : Window
         }
 
         var index = _queue.IndexOf(_currentTrack);
-        var next = FindPlayable(index + 1, 1);
+        var next = index >= 0 ? FindPlayable(index + 1, 1) : null;
+        if (next is null && _repeatMode == RepeatMode.All)
+        {
+            next = FindPlayable(0, 1);
+        }
+
         if (next is not null)
         {
             LoadTrack(next, autoPlay: true);
@@ -2494,10 +2575,27 @@ public sealed partial class MainWindow : Window
             return;
         }
 
+        if (_repeatMode == RepeatMode.One && _queue.Contains(_currentTrack))
+        {
+            _player.PlaybackSession.Position = TimeSpan.Zero;
+            LoadTrack(_currentTrack, autoPlay: true);
+            return;
+        }
+
         var index = _queue.IndexOf(_currentTrack);
         var next = index >= 0 ? FindPlayable(index + 1, 1) : null;
+        if (next is null && _repeatMode == RepeatMode.All)
+        {
+            next = FindPlayable(0, 1);
+        }
+
         if (next is not null)
         {
+            if (ReferenceEquals(next, _currentTrack))
+            {
+                _player.PlaybackSession.Position = TimeSpan.Zero;
+            }
+
             LoadTrack(next, autoPlay: true);
             return;
         }

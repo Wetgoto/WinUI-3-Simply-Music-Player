@@ -14,6 +14,16 @@ if (-not (Test-Path -LiteralPath $project)) {
     throw "Project not found: $project"
 }
 
+# Intermediates from a previous regular build can leak into the single-file
+# bundle and leave it unable to activate WinUI at startup, so always publish
+# from a clean output.
+foreach ($buildFolder in @('bin', 'obj')) {
+    $buildPath = Join-Path $projectRoot $buildFolder
+    if (Test-Path -LiteralPath $buildPath) {
+        Remove-Item -LiteralPath $buildPath -Recurse -Force
+    }
+}
+
 if (Test-Path -LiteralPath $staging) {
     Remove-Item -LiteralPath $staging -Recurse -Force
 }

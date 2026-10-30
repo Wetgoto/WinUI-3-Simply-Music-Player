@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
@@ -189,6 +190,7 @@ public sealed partial class MainWindow
             Content = content,
             HorizontalContentAlignment = HorizontalAlignment.Left
         };
+        AutomationProperties.SetName(button, name);
 
         var editor = new TextBox
         {
@@ -283,6 +285,8 @@ public sealed partial class MainWindow
 
     private async void SelectCustomPlaylist(SidebarPlaylistItem item)
     {
+        ResetSidebarSearch();
+
         if (_selectedNavButton is not null && _selectedNavButton != item.Button)
         {
             _selectedNavButton.Background = new SolidColorBrush(
@@ -594,6 +598,7 @@ public sealed partial class MainWindow
         {
             item.Name = name;
             item.Label.Text = name;
+            AutomationProperties.SetName(item.Button, name);
         }
 
         item.IsEditing = false;
@@ -695,6 +700,11 @@ public sealed partial class MainWindow
             Name = item.Name,
             Paths = item.Paths.ToList()
         }));
+
+        if (_searchPageOpen && _lastSearchQuery.Length > 0)
+        {
+            RefreshSearchResults(_lastSearchQuery);
+        }
     }
 
     private sealed class SidebarPlaylistItem
