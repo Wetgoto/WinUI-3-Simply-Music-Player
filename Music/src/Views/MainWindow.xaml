@@ -1672,7 +1672,7 @@
             x:Name="RecentPage"
             Grid.Row="1"
             Grid.Column="1"
-            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+            Background="Transparent"
             Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="66" />
