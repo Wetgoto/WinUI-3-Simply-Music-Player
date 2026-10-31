@@ -121,6 +121,11 @@ public sealed partial class MainWindow : Window
             new RightTappedEventHandler(SearchList_RightTapped),
             true);
 
+        RecentList.AddHandler(
+            UIElement.RightTappedEvent,
+            new RightTappedEventHandler(RecentList_RightTapped),
+            true);
+
         // The player bar and the full page both open the track menu on
         // right-click; the bar's own buttons and sliders must not swallow it.
         PlayerBar.AddHandler(
@@ -1965,6 +1970,7 @@ public sealed partial class MainWindow : Window
             : Strings.StatusUnfavorited(track.Title));
 
         UpdateTrackFavoriteButtons(track);
+        ApplyFavoriteStateToFavoritesPage(track);
     }
 
     /// <summary>
@@ -1988,9 +1994,11 @@ public sealed partial class MainWindow : Window
         FavoriteButton.IsEnabled = track is not null;
         BarFavoriteButton.IsEnabled = track is not null;
 
-        if (FavoritesPage.Visibility == Visibility.Visible)
+        // Update the favorites list in place. Rebuilding it here used to reload
+        // every record and reset the list on each track change.
+        if (FavoritesPage.Visibility == Visibility.Visible && track is not null)
         {
-            RefreshFavorites();
+            ApplyFavoriteStateToFavoritesPage(track);
         }
     }
 
@@ -2186,6 +2194,19 @@ public sealed partial class MainWindow : Window
         await PlayTrackInScopeAsync(track, PlaybackScope.Single);
     }
 
+    private void RecentList_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var item = FindAncestor<ListViewItem>(e.OriginalSource as DependencyObject);
+        if (item?.Content is not Track track)
+        {
+            return;
+        }
+
+        RecentList.SelectedItem = track;
+        ShowTrackContextFlyout(track, RecentList, e.GetPosition(RecentList));
+        e.Handled = true;
+    }
+
     private Task PlayTrackFromUiAsync(Track track)
     {
         return PlayTrackInScopeAsync(track, GetPlaybackScopeFor(track));
@@ -2314,7 +2335,11 @@ public sealed partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void ShowTrackContextFlyout(Track track, FrameworkElement target, Point position)
+    private void ShowTrackContextFlyout(
+        Track track,
+        FrameworkElement target,
+        Point position,
+        TrackMenuContext context = TrackMenuContext.Playlist)
     {
         var flyout = new MenuFlyout();
 
@@ -2334,12 +2359,29 @@ public sealed partial class MainWindow : Window
         favoriteItem.Click += async (_, _) => await ToggleFavoriteAsync(track);
         flyout.Items.Add(favoriteItem);
 
+        // On the favorites page "remove" means unstar the song; in a playlist
+        // it means take the entry out of that list.
         var removeItem = new MenuFlyoutItem
         {
-            Text = Strings.Remove,
+            Text = context == TrackMenuContext.Favorites
+                ? Strings.RemoveFromFavorites
+                : Strings.Remove,
             Icon = new FontIcon { Glyph = "\uE74D" }
         };
-        removeItem.Click += (_, _) => RemoveTrack(track);
+        removeItem.Click += async (_, _) =>
+        {
+            if (context == TrackMenuContext.Favorites)
+            {
+                if (track.IsFavorite)
+                {
+                    await ToggleFavoriteAsync(track);
+                }
+            }
+            else
+            {
+                RemoveTrack(track);
+            }
+        };
         flyout.Items.Add(removeItem);
 
         flyout.Items.Add(new MenuFlyoutSeparator());
@@ -3158,8 +3200,39 @@ public sealed partial class MainWindow : Window
 
     private void PlayPauseAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
+        // Typing a space in a search box or any other text field must reach that
+        // field instead of pausing playback, so the shortcut steps aside.
+        if (IsTextInputFocused())
+        {
+            args.Handled = false;
+            return;
+        }
+
         args.Handled = true;
         TogglePlayback();
+    }
+
+    /// <summary>
+    /// True when the keyboard focus sits in a control that consumes typed
+    /// characters (search boxes, playlist rename editors, combo box editors).
+    /// </summary>
+    private bool IsTextInputFocused()
+    {
+        var focused = FocusManager.GetFocusedElement(RootGrid.XamlRoot) as DependencyObject;
+        if (focused is null)
+        {
+            return false;
+        }
+
+        for (var element = focused; element is not null; element = VisualTreeHelper.GetParent(element))
+        {
+            if (element is TextBox or RichEditBox or PasswordBox or AutoSuggestBox)
+            {
+                return true;
+            }
+        }
+
+        return focused is TextBox or RichEditBox or PasswordBox;
     }
 
     private void SetProgressMaximum(double seconds)
@@ -3484,4 +3557,16 @@ public enum PlaybackScope
 
     /// <summary>A single track started from Recently played or a search result.</summary>
     Single
+}
+
+/// <summary>
+/// Which page opened a track's context menu; decides what "remove" means.
+/// </summary>
+public enum TrackMenuContext
+{
+    /// <summary>A playlist page: remove the entry from the default queue.</summary>
+    Playlist,
+
+    /// <summary>The favorites page: unstar the song instead of unlinking it.</summary>
+    Favorites
 }

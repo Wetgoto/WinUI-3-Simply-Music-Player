@@ -33,6 +33,8 @@ public sealed partial class MainWindow
     {
         _isApplyingSettings = true;
 
+        LocalizeThemeItems();
+
         ThemeComboBox.SelectedIndex = _themePreference switch
         {
             ThemePreference.Light => 1,
@@ -54,6 +56,21 @@ public sealed partial class MainWindow
         return Enum.TryParse<ThemePreference>(value, ignoreCase: true, out var theme)
             ? theme
             : ThemePreference.System;
+    }
+
+    /// <summary>
+    /// Translates the theme choices. ComboBox items live in the popup, so the
+    /// visual-tree walk in ApplyLocalizedTags never reaches them while the
+    /// popup is closed.
+    /// </summary>
+    private void LocalizeThemeItems()
+    {
+        foreach (var item in ThemeComboBox.Items.OfType<ComboBoxItem>())
+        {
+            LocalizedValue(item);
+        }
+
+        ThemeComboBox.SelectedItem = LocalizedValue(ThemeComboBox.SelectedItem);
     }
 
     private static AppLanguage ParseLanguage(string? value)
@@ -226,6 +243,7 @@ public sealed partial class MainWindow
         LanguageComboBox.SelectedItem = LocalizedValue(LanguageComboBox.SelectedItem);
 
         ApplyLocalizedStaticText();
+        LocalizeThemeItems();
 
         if (_taskbarService is not null)
         {

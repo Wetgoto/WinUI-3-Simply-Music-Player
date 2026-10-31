@@ -30,8 +30,37 @@ public sealed partial class MainWindow
     }
 
     /// <summary>
-    /// Reloads the favorite records from disk and rebuilds the page. Cheap
-    /// enough to run whenever the page is opened or a star is pressed.
+    /// Adds or removes one track in the favorites list in place, so starring a
+    /// song shows up immediately without reloading the whole page.
+    /// </summary>
+    private void ApplyFavoriteStateToFavoritesPage(Track track)
+    {
+        var existing = _favoriteTracks.FirstOrDefault(candidate =>
+            string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase));
+
+        if (track.IsFavorite)
+        {
+            if (existing is null)
+            {
+                // Reuse the instance the user acted on so row state stays shared.
+                _favoriteTrackCache[track.Path] = track;
+                _favoriteTracks.Insert(0, track);
+                RefreshFavoritesUi();
+            }
+
+            return;
+        }
+
+        if (existing is not null)
+        {
+            _favoriteTracks.Remove(existing);
+            RefreshFavoritesUi();
+        }
+    }
+
+    /// <summary>
+    /// Reloads the favorite records from disk and rebuilds the page. Called
+    /// when the page is opened, not on every track change.
     /// </summary>
     private void RefreshFavorites()
     {
@@ -239,7 +268,11 @@ public sealed partial class MainWindow
         }
 
         FavoritesList.SelectedItem = track;
-        ShowTrackContextFlyout(track, FavoritesList, e.GetPosition(FavoritesList));
+        ShowTrackContextFlyout(
+            track,
+            FavoritesList,
+            e.GetPosition(FavoritesList),
+            TrackMenuContext.Favorites);
         e.Handled = true;
     }
 

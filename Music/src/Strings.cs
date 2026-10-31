@@ -165,6 +165,7 @@ public static class Strings
     public static string SortedByDuration => T("已按时长排序", "Sorted by duration");
     public static string SortedByAdded => T("已按添加日期排序", "Sorted by date added");
     public static string Remove => T("移除", "Remove");
+    public static string RemoveFromFavorites => T("从收藏中移除", "Remove from favorites");
     public static string ViewDetails => T("查看详细信息", "View details");
     public static string Details => T("详细信息", "Details");
     public static string Rename => T("重命名", "Rename");
