@@ -287,11 +287,8 @@ public sealed partial class MainWindow
             RefreshFavoritesUi();
         }
 
-        MainWorkspace.Visibility = Visibility.Collapsed;
-        RecentPage.Visibility = Visibility.Collapsed;
+        HideAllPages();
         FavoritesPage.Visibility = Visibility.Visible;
-        CustomPlaylistPage.Visibility = Visibility.Collapsed;
-        SettingsPage.Visibility = Visibility.Collapsed;
     }
 
     private void HideFavoritesPage()

@@ -921,6 +921,22 @@ public sealed partial class MainWindow : Window
         SelectSidebarNav(button, key);
     }
 
+    /// <summary>
+    /// Collapses every top-level page. Callers show the one they want right
+    /// afterwards, so a page added later can never stay stacked on top of the
+    /// page being opened.
+    /// </summary>
+    private void HideAllPages()
+    {
+        MainWorkspace.Visibility = Visibility.Collapsed;
+        RecentPage.Visibility = Visibility.Collapsed;
+        FavoritesPage.Visibility = Visibility.Collapsed;
+        CustomPlaylistPage.Visibility = Visibility.Collapsed;
+        LibraryPage.Visibility = Visibility.Collapsed;
+        SearchPage.Visibility = Visibility.Collapsed;
+        SettingsPage.Visibility = Visibility.Collapsed;
+    }
+
     private void SelectSidebarNav(Button button, string key)
     {
         ResetSidebarSearch();
@@ -948,11 +964,8 @@ public sealed partial class MainWindow : Window
 
         if (key == "default")
         {
+            HideAllPages();
             MainWorkspace.Visibility = Visibility.Visible;
-            RecentPage.Visibility = Visibility.Collapsed;
-            HideFavoritesPage();
-            CustomPlaylistPage.Visibility = Visibility.Collapsed;
-            SettingsPage.Visibility = Visibility.Collapsed;
             DefaultListTitleText.Text = Strings.DefaultList;
             return;
         }
@@ -961,21 +974,14 @@ public sealed partial class MainWindow : Window
         {
             RefreshRecentState();
             RefreshRecentUi();
-            MainWorkspace.Visibility = Visibility.Collapsed;
+            HideAllPages();
             RecentPage.Visibility = Visibility.Visible;
-            HideFavoritesPage();
-            CustomPlaylistPage.Visibility = Visibility.Collapsed;
-            SettingsPage.Visibility = Visibility.Collapsed;
             return;
         }
 
         if (key == "favorites")
         {
-            MainWorkspace.Visibility = Visibility.Collapsed;
-            RecentPage.Visibility = Visibility.Collapsed;
-            CustomPlaylistPage.Visibility = Visibility.Collapsed;
-            SettingsPage.Visibility = Visibility.Collapsed;
-            LibraryPage.Visibility = Visibility.Collapsed;
+            HideAllPages();
             ShowFavoritesPage();
             return;
         }
@@ -983,24 +989,14 @@ public sealed partial class MainWindow : Window
         if (key == "library")
         {
             RefreshLibrary();
-            MainWorkspace.Visibility = Visibility.Collapsed;
-            RecentPage.Visibility = Visibility.Collapsed;
-            HideFavoritesPage();
-            CustomPlaylistPage.Visibility = Visibility.Collapsed;
-            SearchPage.Visibility = Visibility.Collapsed;
-            SettingsPage.Visibility = Visibility.Collapsed;
+            HideAllPages();
             LibraryPage.Visibility = Visibility.Visible;
             return;
         }
 
         if (key == "settings")
         {
-            MainWorkspace.Visibility = Visibility.Collapsed;
-            RecentPage.Visibility = Visibility.Collapsed;
-            HideFavoritesPage();
-            CustomPlaylistPage.Visibility = Visibility.Collapsed;
-            LibraryPage.Visibility = Visibility.Collapsed;
-            SearchPage.Visibility = Visibility.Collapsed;
+            HideAllPages();
             SettingsPage.Visibility = Visibility.Visible;
         }
     }

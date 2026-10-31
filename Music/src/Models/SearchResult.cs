@@ -33,7 +33,13 @@ public sealed class SearchResult : INotifyPropertyChanged
 
     public string TrailingText => Track.TrailingText;
 
-    public string ToolTipText => Track.ToolTipText;
+    /// <summary>
+    /// The row itself now looks exactly like every other list, so the playlists
+    /// that contain the track are folded into the tooltip instead of a column.
+    /// </summary>
+    public string ToolTipText => string.IsNullOrWhiteSpace(SourceText)
+        ? Track.ToolTipText
+        : $"{Track.ToolTipText}\n{SourceText}";
 
     public double RowOpacity => Track.RowOpacity;
 

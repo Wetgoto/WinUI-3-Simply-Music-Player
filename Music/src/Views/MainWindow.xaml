@@ -279,7 +279,6 @@
 
                                 <Border
                                     x:Name="HoverLayer"
-                                    Margin="10,6"
                                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="10"
                                     IsHitTestVisible="False"
@@ -326,12 +325,15 @@
                     </Grid.ColumnDefinitions>
 
                     <!--
-                        The highlight sits inside the row padding instead of
-                        bleeding outwards, so every list shows the same inset
-                        rounded block regardless of its container margins.
+                        One highlight definition for the whole app. The block
+                        bleeds out over the row padding so it always matches the
+                        rounded block the default list draws, whichever card
+                        hosts the list. The accent bar sits just inside the
+                        block's left edge, as on the default list.
                     -->
                     <Border
                         Grid.ColumnSpan="4"
+                        Margin="-10,-6,-10,-6"
                         CornerRadius="10"
                         Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                         Visibility="{x:Bind CurrentVisibility, Mode=OneWay}"
@@ -339,6 +341,7 @@
                     <Border
                         Width="3"
                         Height="40"
+                        Margin="-9,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         CornerRadius="2"
@@ -350,12 +353,9 @@
                         Grid.Column="0"
                         Width="56"
                         Height="56">
-                        <!--
-                            No well behind the artwork: any fill shows up as a
-                            raised inner box on the playing row's highlight. The
-                            placeholder icon sits directly on the row background,
-                            and a real cover still fills the rounded frame.
-                        -->
+                        <Border
+                            CornerRadius="10"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}" />
                         <FontIcon
                             Glyph="&#xE8D6;"
                             FontSize="22"
@@ -378,32 +378,18 @@
                         Grid.Column="1"
                         Spacing="3"
                         VerticalAlignment="Center">
-                        <ScrollViewer
-                            HorizontalScrollMode="Enabled"
-                            HorizontalScrollBarVisibility="Hidden"
-                            VerticalScrollMode="Disabled"
-                            VerticalScrollBarVisibility="Hidden"
-                            HorizontalContentAlignment="Left"
-                            VerticalContentAlignment="Center"
-                            HorizontalAlignment="Stretch"
-                            IsTabStop="False"
-                            AutomationProperties.HelpText="MarqueeScroll"
-                            SizeChanged="Marquee_SizeChanged">
-                            <TextBlock Text="{x:Bind QueueTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" TextWrapping="NoWrap" HorizontalAlignment="Left" IsTextSelectionEnabled="False" />
-                        </ScrollViewer>
-                        <ScrollViewer
-                            HorizontalScrollMode="Enabled"
-                            HorizontalScrollBarVisibility="Hidden"
-                            VerticalScrollMode="Disabled"
-                            VerticalScrollBarVisibility="Hidden"
-                            HorizontalContentAlignment="Left"
-                            VerticalContentAlignment="Center"
-                            HorizontalAlignment="Stretch"
-                            IsTabStop="False"
-                            AutomationProperties.HelpText="MarqueeScroll"
-                            SizeChanged="Marquee_SizeChanged">
-                            <TextBlock Text="{x:Bind RecentSubtitle, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" HorizontalAlignment="Left" IsTextSelectionEnabled="False" />
-                        </ScrollViewer>
+                        <TextBlock
+                            Text="{x:Bind QueueTitle, Mode=OneWay}"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1" />
+                        <TextBlock
+                            Text="{x:Bind QueueSubtitle, Mode=OneWay}"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextTrimming="CharacterEllipsis"
+                            MaxLines="1" />
                     </StackPanel>
 
                     <StackPanel
@@ -469,7 +455,7 @@
                 </Grid>
             </DataTemplate>
 
-            <!-- Search results keep the same row rhythm, with the source playlists on the right. -->
+            <!-- Search results use the very same row as every other list. -->
             <DataTemplate x:Key="SearchRowTemplate" x:DataType="models:SearchResult">
                 <Grid
                     Padding="10,6"
@@ -481,7 +467,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="240" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="112" />
                     </Grid.ColumnDefinitions>
 
                     <Border
@@ -506,12 +492,9 @@
                         Grid.Column="0"
                         Width="56"
                         Height="56">
-                        <!--
-                            No well behind the artwork: any fill shows up as a
-                            raised inner box on the playing row's highlight. The
-                            placeholder icon sits directly on the row background,
-                            and a real cover still fills the rounded frame.
-                        -->
+                        <Border
+                            CornerRadius="10"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}" />
                         <FontIcon
                             Glyph="&#xE8D6;"
                             FontSize="22"
@@ -541,7 +524,7 @@
                             TextTrimming="CharacterEllipsis"
                             MaxLines="1" />
                         <TextBlock
-                            Text="{x:Bind Subtitle, Mode=OneWay}"
+                            Text="{x:Bind Track.QueueSubtitle, Mode=OneWay}"
                             FontSize="11"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             TextTrimming="CharacterEllipsis"
@@ -596,12 +579,12 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center">
                         <TextBlock
-                            Text="{x:Bind TrailingText, Mode=OneWay}"
+                            Text="{x:Bind Track.DurationText, Mode=OneWay}"
                             FontSize="14"
                             HorizontalAlignment="Right"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <TextBlock
-                            Text="{x:Bind SourceText}"
+                            Text="{x:Bind Track.FileInfoText, Mode=OneWay}"
                             FontSize="11"
                             HorizontalAlignment="Right"
                             TextTrimming="CharacterEllipsis"
@@ -1027,299 +1010,9 @@
                             IsItemClickEnabled="False"
                             DoubleTapped="QueueList_DoubleTapped"
                             SelectionChanged="QueueList_SelectionChanged"
-                            AutomationProperties.Name="播放队列">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Padding" Value="0" />
-                                    <Setter Property="Margin" Value="0,1" />
-                                    <Setter Property="MinHeight" Value="68" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListViewItem">
-                                                <Grid
-                                                    x:Name="ItemRoot"
-                                                    Background="Transparent"
-                                                    CornerRadius="10">
-                                                    <VisualStateManager.VisualStateGroups>
-                                                        <VisualStateGroup x:Name="CommonStates">
-                                                            <VisualState x:Name="Normal">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                            <VisualState x:Name="PointerOver">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                            <VisualState x:Name="Pressed">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                            <VisualState x:Name="Selected">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                            <VisualState x:Name="PointerOverSelected">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                            <VisualState x:Name="PressedSelected">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                            <VisualState x:Name="Disabled">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="HoverLayer"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                    <DoubleAnimation
-                                                                        Storyboard.TargetName="SelectionIndicator"
-                                                                        Storyboard.TargetProperty="Opacity"
-                                                                        To="0"
-                                                                        Duration="0:0:0.08" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                        </VisualStateGroup>
-                                                    </VisualStateManager.VisualStateGroups>
-
-                                                    <Border
-                                                        x:Name="HoverLayer"
-                                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                        CornerRadius="10"
-                                                        IsHitTestVisible="False"
-                                                        Opacity="0" />
-
-                                                    <Border
-                                                        x:Name="SelectionIndicator"
-                                                        Width="3"
-                                                        Height="40"
-                                                        Margin="5,0,0,0"
-                                                        HorizontalAlignment="Left"
-                                                        VerticalAlignment="Center"
-                                                        CornerRadius="2"
-                                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                                        IsHitTestVisible="False"
-                                                        Visibility="Collapsed"
-                                                        Opacity="0" />
-
-                                                    <ContentPresenter
-                                                        Content="{TemplateBinding Content}"
-                                                        ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                        HorizontalContentAlignment="Stretch"
-                                                        VerticalContentAlignment="Stretch"
-                                                        Padding="{TemplateBinding Padding}" />
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.ItemContainerStyle>
-
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="models:Track">
-                                    <Grid
-                                        Padding="10,6"
-                                        ColumnSpacing="10"
-                                        Opacity="{x:Bind RowOpacity, Mode=OneWay}"
-                                        AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
-                                        AutomationProperties.HelpText="{x:Bind DetailsLine, Mode=OneWay}"
-                                        ToolTipService.ToolTip="{x:Bind ToolTipText, Mode=OneWay}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="240" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="112" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Border
-                                            Grid.ColumnSpan="4"
-                                            Margin="-10,-6,-10,-6"
-                                            CornerRadius="10"
-                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                            Visibility="{x:Bind CurrentVisibility, Mode=OneWay}"
-                                            IsHitTestVisible="False" />
-                                        <Border
-                                            Width="3"
-                                            Height="40"
-                                            Margin="-9,0,0,0"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center"
-                                            CornerRadius="2"
-                                            Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                            Visibility="{x:Bind CurrentVisibility, Mode=OneWay}"
-                                            IsHitTestVisible="False" />
-
-                                        <Grid
-                                            Grid.Column="0"
-                                            Width="56"
-                                            Height="56">
-                                            <Border
-                                                CornerRadius="10"
-                                                Background="{ThemeResource ControlFillColorSecondaryBrush}" />
-                                            <FontIcon
-                                                Glyph="&#xE8D6;"
-                                                FontSize="22"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}" />
-                                            <Border
-                                                CornerRadius="10"
-                                                Visibility="{x:Bind ArtworkVisibility, Mode=OneWay}">
-                                                <Border.Background>
-                                                    <ImageBrush
-                                                        ImageSource="{x:Bind Artwork, Mode=OneWay}"
-                                                        Stretch="UniformToFill" />
-                                                </Border.Background>
-                                            </Border>
-                                        </Grid>
-
-                                        <StackPanel
-                                            Grid.Column="1"
-                                            Spacing="3"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind QueueTitle, Mode=OneWay}"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                            <TextBlock
-                                                Text="{x:Bind QueueSubtitle, Mode=OneWay}"
-                                                FontSize="11"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            x:Name="QueueActionsPanel"
-                                            Grid.Column="2"
-                                            Orientation="Horizontal"
-                                            Spacing="4"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Opacity="0"
-                                            IsHitTestVisible="False">
-                                            <Button
-                                                Tag="local:LocalizedTag(Text='播放', English='Play')"
-                                                Style="{StaticResource QueueActionButtonStyle}"
-                                                Click="QueuePlayButton_Click"
-                                                ToolTipService.ToolTip="播放"
-                                                AutomationProperties.Name="播放">
-                                                <FontIcon Glyph="&#xE768;" FontSize="13" />
-                                            </Button>
-                                            <Button
-                                                Style="{StaticResource QueueActionButtonStyle}"
-                                                Click="QueueFavoriteButton_Click"
-                                                ToolTipService.ToolTip="{x:Bind FavoriteToolTip, Mode=OneWay}"
-                                                AutomationProperties.Name="{x:Bind FavoriteToolTip, Mode=OneWay}">
-                                                <FontIcon Glyph="{x:Bind FavoriteGlyph, Mode=OneWay}" FontSize="13" />
-                                            </Button>
-                                            <Button
-                                                Tag="local:LocalizedTag(Text='添加到播放列表', English='Add to playlist')"
-                                                Style="{StaticResource QueueActionButtonStyle}"
-                                                Click="QueueAddButton_Click"
-                                                ToolTipService.ToolTip="添加到播放列表"
-                                                AutomationProperties.Name="添加到播放列表">
-                                                <FontIcon Glyph="&#xE710;" FontSize="13" />
-                                            </Button>
-                                            <Button
-                                                Tag="local:LocalizedTag(Text='更多选项', English='More options')"
-                                                Style="{StaticResource QueueActionButtonStyle}"
-                                                Click="QueueMoreButton_Click"
-                                                ToolTipService.ToolTip="更多选项"
-                                                AutomationProperties.Name="更多选项">
-                                                <FontIcon Glyph="&#xE712;" FontSize="13" />
-                                            </Button>
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="3"
-                                            Spacing="2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind DurationText, Mode=OneWay}"
-                                                FontSize="14"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock
-                                                Text="{x:Bind FileInfoText, Mode=OneWay}"
-                                                FontSize="11"
-                                                HorizontalAlignment="Right"
-                                                TextTrimming="CharacterEllipsis"
-                                                MaxLines="1"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                            AutomationProperties.Name="播放队列"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource TrackRowTemplate}" />
 
                         <StackPanel
                             x:Name="EmptyQueuePanel"
@@ -1943,7 +1636,7 @@
                         <ListView
                             Tag="local:LocalizedTag(Text='最近播放的曲目', English='Recently played tracks')"
                             x:Name="RecentList"
-                            Padding="6"
+                            Padding="12,8"
                             SelectionMode="Single"
                             DoubleTapped="RecentList_DoubleTapped"
                             AutomationProperties.Name="最近播放的曲目"
@@ -2115,7 +1808,7 @@
                         <ListView
                             Tag="local:LocalizedTag(Text='收藏的曲目', English='Favorite tracks')"
                             x:Name="FavoritesList"
-                            Padding="6"
+                            Padding="12,8"
                             SelectionMode="Single"
                             DoubleTapped="FavoritesList_DoubleTapped"
                             AutomationProperties.Name="收藏的曲目"
@@ -2306,7 +1999,7 @@
                         <ListView
                             Tag="local:LocalizedTag(Text='当前播放列表曲目', English='Tracks in this playlist')"
                             x:Name="CustomPlaylistList"
-                            Padding="6"
+                            Padding="12,8"
                             SelectionMode="Single"
                             DoubleTapped="CustomPlaylistList_DoubleTapped"
                             AutomationProperties.Name="当前播放列表曲目"
@@ -2493,7 +2186,7 @@
                         <ListView
                             Tag="local:LocalizedTag(Text='搜索结果', English='Search results')"
                             x:Name="SearchList"
-                            Padding="6"
+                            Padding="12,8"
                             SelectionMode="Single"
                             DoubleTapped="SearchList_DoubleTapped"
                             AutomationProperties.Name="搜索结果"
@@ -2614,7 +2307,7 @@
                         <ListView
                             Tag="local:LocalizedTag(Text='资料库曲目', English='Library tracks')"
                             x:Name="LibraryList"
-                            Padding="6"
+                            Padding="12,8"
                             SelectionMode="Single"
                             DoubleTapped="LibraryList_DoubleTapped"
                             AutomationProperties.Name="资料库曲目"
