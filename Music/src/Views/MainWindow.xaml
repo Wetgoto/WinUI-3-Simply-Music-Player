@@ -616,13 +616,12 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!--
-            Custom title bar. Only the content column (column 1) is draggable;
-            the sidebar column owns row 0 itself, so the brand block sits in the
-            same visual column as the navigation instead of being duplicated.
+            Caption row. It spans the full width and carries only the back
+            button and the drag strip; the app identity lives once, in the
+            sidebar brand block below it.
         -->
         <Grid
             x:Name="AppTitleBar"
@@ -633,7 +632,6 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="140" />
             </Grid.ColumnDefinitions>
 
             <Button
@@ -656,42 +654,26 @@
             <Grid
                 x:Name="TitleBarDragRegion"
                 Grid.Column="1"
-                Background="Transparent">
-
-                <!--
-                    The title bar is a pure drag strip. The app identity belongs
-                    to the sidebar brand block, so nothing is repeated here; the
-                    caption buttons are drawn by the system on the right.
-                -->
-                <TextBlock
-                    x:Name="TitleBarText"
-                    Text="Simple Music Player"
-                    FontSize="12"
-                    VerticalAlignment="Center"
-                    Margin="12,0,0,0"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-            </Grid>
+                Background="Transparent" />
         </Grid>
 
         <!-- Left navigation rail -->
         <Border
             x:Name="NavigationRail"
-            Grid.Row="0"
-            Grid.RowSpan="2"
+            Grid.Row="1"
             Grid.Column="0"
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0">
             <!--
-                Sidebar layout follows the Windows Media Player convention: one
-                brand block at the top, search, navigation, and a settings item
-                pinned to the bottom of the rail. The rail owns its full height
-                so the bottom item never collides with the player bar.
+                Sidebar follows the Windows Media Player convention: brand block
+                on top, then search, then a scrolling navigation list, then the
+                settings item pinned to the bottom edge of the rail.
             -->
             <Grid Padding="12,0,12,12">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="72" />
-                    <RowDefinition Height="48" />
+                    <RowDefinition Height="56" />
+                    <RowDefinition Height="44" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -700,7 +682,7 @@
                 <Grid
                     x:Name="BrandArea"
                     Grid.Row="0"
-                    Height="72"
+                    Height="56"
                     Padding="4,0,4,0"
                     Background="Transparent">
                     <StackPanel
@@ -860,13 +842,13 @@
 
         <!--
             Home surface: playlists on top, player bar underneath. It fills the
-            content area as one block so the page switch can cross-fade the
+            content column as one block so the page switch can cross-fade the
             whole thing at once instead of fading two unrelated regions.
         -->
         <Grid
             x:Name="HomeSurface"
             Grid.Row="1"
-            Grid.ColumnSpan="2">
+            Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -876,7 +858,6 @@
         <Grid
             x:Name="MainWorkspace"
             Grid.Row="0"
-            Grid.Column="1"
             AllowDrop="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="66" />
@@ -1485,7 +1466,6 @@
             <Border
                 x:Name="PlayerBar"
                 Grid.Row="1"
-                Grid.Column="1"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="0,1,0,0"
@@ -2812,7 +2792,7 @@
         <Grid
             x:Name="PlayerPage"
             Grid.Row="1"
-            Grid.ColumnSpan="2"
+            Grid.Column="1"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Opacity="0"
             Visibility="Collapsed"
