@@ -259,6 +259,13 @@ public sealed partial class MainWindow
         LanguageComboBox.SelectedItem = LocalizedValue(LanguageComboBox.SelectedItem);
 
         ApplyLocalizedStaticText();
+
+        // The version lines are built from the assembly at runtime, so they are
+        // re-rendered here after a language switch instead of coming from Tag.
+        var informational = GetInformationalVersion();
+        AppVersionText.Text = GetAlphaLabel(informational);
+        AppVersionDetailText.Text = Strings.VersionLine(informational);
+        AppVersionTechText.Text = Strings.SdkLine;
         LocalizeThemeItems();
 
         if (_taskbarService is not null)
