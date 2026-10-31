@@ -369,8 +369,7 @@
                             VerticalScrollMode="Disabled"
                             VerticalScrollBarVisibility="Hidden"
                             IsTabStop="False"
-                            PointerEntered="Marquee_PointerEntered"
-                            PointerExited="Marquee_PointerExited"
+                            Tag="Marquee"
                             SizeChanged="Marquee_SizeChanged">
                             <TextBlock
                                 Text="{x:Bind QueueTitle, Mode=OneWay}"
@@ -385,8 +384,7 @@
                             VerticalScrollMode="Disabled"
                             VerticalScrollBarVisibility="Hidden"
                             IsTabStop="False"
-                            PointerEntered="Marquee_PointerEntered"
-                            PointerExited="Marquee_PointerExited"
+                            Tag="Marquee"
                             SizeChanged="Marquee_SizeChanged">
                             <TextBlock
                                 Text="{x:Bind RecentSubtitle, Mode=OneWay}"
@@ -1552,8 +1550,7 @@
                                     VerticalScrollMode="Disabled"
                                     VerticalScrollBarVisibility="Hidden"
                                     IsTabStop="False"
-                                    PointerEntered="Marquee_PointerEntered"
-                                    PointerExited="Marquee_PointerExited"
+                                    Tag="Marquee"
                                     SizeChanged="Marquee_SizeChanged">
                                     <TextBlock
                                         Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
@@ -1569,8 +1566,7 @@
                                     VerticalScrollMode="Disabled"
                                     VerticalScrollBarVisibility="Hidden"
                                     IsTabStop="False"
-                                    PointerEntered="Marquee_PointerEntered"
-                                    PointerExited="Marquee_PointerExited"
+                                    Tag="Marquee"
                                     SizeChanged="Marquee_SizeChanged">
                                     <TextBlock
                                         Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
@@ -2835,8 +2831,7 @@
                                 VerticalScrollMode="Disabled"
                                 VerticalScrollBarVisibility="Hidden"
                                 IsTabStop="False"
-                                PointerEntered="Marquee_PointerEntered"
-                                PointerExited="Marquee_PointerExited"
+                                Tag="Marquee"
                                 SizeChanged="Marquee_SizeChanged">
                                 <TextBlock
                                     Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
@@ -2852,8 +2847,7 @@
                                 VerticalScrollMode="Disabled"
                                 VerticalScrollBarVisibility="Hidden"
                                 IsTabStop="False"
-                                PointerEntered="Marquee_PointerEntered"
-                                PointerExited="Marquee_PointerExited"
+                                Tag="Marquee"
                                 SizeChanged="Marquee_SizeChanged">
                                 <TextBlock
                                     Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
