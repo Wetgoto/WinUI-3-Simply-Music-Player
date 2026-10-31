@@ -27,6 +27,15 @@ public static class Strings
     public static string SearchAllMusic => T("搜索全部音乐", "Search all music");
     public static string SearchAllPlaylists => T("搜索所有播放列表", "Search all playlists");
     public static string RecentProjects => T("最近的项目", "Recently played");
+    public static string Favorites => T("收藏的项目", "Favorites");
+    public static string FavoriteTracks => T("收藏的曲目", "Favorite tracks");
+    public static string FavoriteEmptyTitle => T("还没有收藏的歌曲", "No favorites yet");
+    public static string FavoriteEmptyDetail => T("在曲目行、播放页或播放条上点击收藏图标，收藏的歌会出现在这里。", "Press the star on a track row, the player page or the player bar to keep songs here.");
+    public static string SearchFavorites => T("搜索收藏的项目", "Search favorites");
+    public static string SortFavorites => T("排序收藏的项目", "Sort favorites");
+    public static string StatusFavorited(string title) => T($"已收藏 · {title}", $"Added to favorites · {title}");
+    public static string StatusUnfavorited(string title) => T($"已取消收藏 · {title}", $"Removed from favorites · {title}");
+    public static string StatusFavoriteNoTrack => T("当前没有正在播放的曲目", "Nothing is playing right now");
     public static string Playlists => T("播放列表", "Playlists");
     public static string DefaultList => T("默认列表", "Default list");
     public static string AddPlaylist => T("添加播放列表", "Add playlist");

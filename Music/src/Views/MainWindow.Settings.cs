@@ -82,7 +82,7 @@ public sealed partial class MainWindow
 
         DefaultListTitleText.Text = Strings.DefaultList;
         UpdateRepeatUi();
-        UpdateFavoriteIcon();
+        UpdateTrackFavoriteButtons(_currentTrack);
         UpdateVolumeIcon();
         UpdateTransportUi();
         RefreshQueueUi();

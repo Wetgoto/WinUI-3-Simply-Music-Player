@@ -299,6 +299,7 @@ public sealed partial class MainWindow
 
         MainWorkspace.Visibility = Visibility.Collapsed;
         RecentPage.Visibility = Visibility.Collapsed;
+        HideFavoritesPage();
         CustomPlaylistPage.Visibility = Visibility.Visible;
         SettingsPage.Visibility = Visibility.Collapsed;
         CustomPlaylistTitleText.Text = item.Name;

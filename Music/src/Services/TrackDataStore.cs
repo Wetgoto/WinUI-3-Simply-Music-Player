@@ -100,6 +100,46 @@ public static class TrackDataStore
         return EnsureRecordAsync(track, forceWrite: true);
     }
 
+    /// <summary>
+    /// Every track record currently marked as a favorite, most recent import
+    /// first. Used by the favorites page, which is built from saved records
+    /// rather than from the playlists.
+    /// </summary>
+    public static IReadOnlyList<TrackDataRecord> LoadFavorites()
+    {
+        var result = new List<TrackDataRecord>();
+        var directory = AppPaths.TrackDataDirectory;
+        if (!Directory.Exists(directory))
+        {
+            return result;
+        }
+
+        foreach (var file in Directory.EnumerateFiles(directory, "*.json"))
+        {
+            try
+            {
+                var record = JsonSerializer.Deserialize<TrackDataRecord>(File.ReadAllText(file), JsonOptions);
+                if (record is null ||
+                    record.SchemaVersion != CurrentSchemaVersion ||
+                    !record.Favorite ||
+                    string.IsNullOrWhiteSpace(record.Path))
+                {
+                    continue;
+                }
+
+                result.Add(record);
+            }
+            catch
+            {
+                // A damaged record must not hide the rest of the favorites.
+            }
+        }
+
+        return result
+            .OrderByDescending(record => record.ImportedAt)
+            .ToList();
+    }
+
     public static async Task<DateTimeOffset?> GetImportedAtAsync(string path)
     {
         try

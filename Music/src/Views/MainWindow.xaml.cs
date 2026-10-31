@@ -70,7 +70,6 @@ public sealed partial class MainWindow : Window
     private bool _isUpdatingVolume;
     private bool _isPlayerPageOpen;
     private bool _isPageTransitioning;
-    private bool _isFavorite;
     private bool _playlistReady;
     private double _volumeBeforeMute = 65;
     private RepeatMode _repeatMode = RepeatMode.None;
@@ -109,6 +108,8 @@ public sealed partial class MainWindow : Window
         SearchList.ItemsSource = _searchResults;
         SearchList.ContainerContentChanging += QueueList_ContainerContentChanging;
 
+        InitializeFavorites();
+
         // Catch right-taps even if a ListViewItem already handled the event.
         QueueList.AddHandler(
             UIElement.RightTappedEvent,
@@ -118,6 +119,17 @@ public sealed partial class MainWindow : Window
         SearchList.AddHandler(
             UIElement.RightTappedEvent,
             new RightTappedEventHandler(SearchList_RightTapped),
+            true);
+
+        // The player bar and the full page both open the track menu on
+        // right-click; the bar's own buttons and sliders must not swallow it.
+        PlayerBar.AddHandler(
+            UIElement.PointerPressedEvent,
+            new PointerEventHandler(PlayerBar_PointerPressed),
+            true);
+        PlayerPage.AddHandler(
+            UIElement.PointerPressedEvent,
+            new PointerEventHandler(PlayerPage_PointerPressed),
             true);
 
         // Listen for drag events even when an inner control (such as the
@@ -906,6 +918,7 @@ public sealed partial class MainWindow : Window
         {
             MainWorkspace.Visibility = Visibility.Visible;
             RecentPage.Visibility = Visibility.Collapsed;
+            HideFavoritesPage();
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
             SettingsPage.Visibility = Visibility.Collapsed;
             DefaultListTitleText.Text = Strings.DefaultList;
@@ -918,8 +931,19 @@ public sealed partial class MainWindow : Window
             RefreshRecentUi();
             MainWorkspace.Visibility = Visibility.Collapsed;
             RecentPage.Visibility = Visibility.Visible;
+            HideFavoritesPage();
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
             SettingsPage.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        if (key == "favorites")
+        {
+            MainWorkspace.Visibility = Visibility.Collapsed;
+            RecentPage.Visibility = Visibility.Collapsed;
+            CustomPlaylistPage.Visibility = Visibility.Collapsed;
+            SettingsPage.Visibility = Visibility.Collapsed;
+            ShowFavoritesPage();
             return;
         }
 
@@ -927,6 +951,7 @@ public sealed partial class MainWindow : Window
         {
             MainWorkspace.Visibility = Visibility.Collapsed;
             RecentPage.Visibility = Visibility.Collapsed;
+            HideFavoritesPage();
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
             SearchPage.Visibility = Visibility.Collapsed;
             SettingsPage.Visibility = Visibility.Visible;
@@ -1372,8 +1397,19 @@ public sealed partial class MainWindow : Window
         _currentTrack = track;
         track.IsCurrent = true;
         track.IsPlaying = false;
-        QueueList.SelectedItem = track;
-        QueueList.ScrollIntoView(track);
+
+        // Only mirror the selection inside the default list; a track played
+        // from Recently played or Favorites does not belong to that list.
+        if (_queue.Contains(track))
+        {
+            QueueList.SelectedItem = track;
+            QueueList.ScrollIntoView(track);
+        }
+        else
+        {
+            QueueList.SelectedItem = null;
+        }
+
         UpdateNowPlaying(track);
 
         _pendingAutoPlay = autoPlay;
@@ -1807,21 +1843,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        track.ToggleFavorite();
-        if (sender is Button button)
-        {
-            ToolTipService.SetToolTip(button, track.FavoriteToolTip);
-            AutomationProperties.SetName(button, track.FavoriteToolTip);
-        }
-
-        try
-        {
-            await TrackDataStore.PersistFavoriteAsync(track);
-        }
-        catch
-        {
-            SetStatus(Strings.StatusFavoriteSaveFailed);
-        }
+        await ToggleFavoriteAsync(track);
     }
 
     private void QueueAddButton_Click(object sender, RoutedEventArgs e)
@@ -1897,16 +1919,79 @@ public sealed partial class MainWindow : Window
         };
     }
 
-    private void FavoriteButton_Click(object sender, RoutedEventArgs e)
+    private async void FavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        _isFavorite = !_isFavorite;
-        UpdateFavoriteIcon();
-    }    private void UpdateFavoriteIcon()
+        // The full player page star reflects the playing track, which may come
+        // from any list, so it goes through the shared toggle.
+        if (_currentTrack is null)
+        {
+            SetStatus(Strings.StatusFavoriteNoTrack);
+            return;
+        }
+
+        await ToggleFavoriteAsync(_currentTrack);
+    }
+
+    private async void BarFavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        FavoriteIcon.Glyph = _isFavorite ? "\uE735" : "\uE734";
-        var label = _isFavorite ? Strings.Unfavorite : Strings.Favorite;
+        if (_currentTrack is null)
+        {
+            SetStatus(Strings.StatusFavoriteNoTrack);
+            return;
+        }
+
+        await ToggleFavoriteAsync(_currentTrack);
+    }
+
+    /// <summary>
+    /// Flips the favorite flag of a track, saves it, and refreshes every star
+    /// that may be showing that track.
+    /// </summary>
+    private async Task ToggleFavoriteAsync(Track track)
+    {
+        track.ToggleFavorite();
+
+        try
+        {
+            await TrackDataStore.PersistFavoriteAsync(track);
+        }
+        catch
+        {
+            SetStatus(Strings.StatusFavoriteSaveFailed);
+        }
+
+        SetStatus(track.IsFavorite
+            ? Strings.StatusFavorited(track.Title)
+            : Strings.StatusUnfavorited(track.Title));
+
+        UpdateTrackFavoriteButtons(track);
+    }
+
+    /// <summary>
+    /// Applies the current favorite state to the player page star and the player
+    /// bar star, and reloads the favorites page when it is on screen.
+    /// </summary>
+    private void UpdateTrackFavoriteButtons(Track? track)
+    {
+        var isFavorite = track?.IsFavorite == true;
+        var glyph = isFavorite ? "\uE735" : "\uE734";
+        var label = isFavorite ? Strings.Unfavorite : Strings.Favorite;
+
+        FavoriteIcon.Glyph = glyph;
+        BarFavoriteIcon.Glyph = glyph;
+
         ToolTipService.SetToolTip(FavoriteButton, label);
         AutomationProperties.SetName(FavoriteButton, label);
+        ToolTipService.SetToolTip(BarFavoriteButton, label);
+        AutomationProperties.SetName(BarFavoriteButton, label);
+
+        FavoriteButton.IsEnabled = track is not null;
+        BarFavoriteButton.IsEnabled = track is not null;
+
+        if (FavoritesPage.Visibility == Visibility.Visible)
+        {
+            RefreshFavorites();
+        }
     }
 
     private void MoreButton_Click(object sender, RoutedEventArgs e)
@@ -2187,11 +2272,49 @@ public sealed partial class MainWindow : Window
         }
 
         QueueList.SelectedItem = track;
-        ShowTrackContextFlyout(track, e.GetPosition(QueueList));
+        ShowTrackContextFlyout(track, QueueList, e.GetPosition(QueueList));
         e.Handled = true;
     }
 
-    private void ShowTrackContextFlyout(Track track, Point position)
+    /// <summary>
+    /// A right-click anywhere on the player bar opens the track menu for the
+    /// track that is currently loaded. Pointer events are used because the
+    /// bar's buttons and sliders handle their own right-clicks.
+    /// </summary>
+    private void PlayerBar_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (_currentTrack is null ||
+            !e.GetCurrentPoint(PlayerBar).Properties.IsRightButtonPressed)
+        {
+            return;
+        }
+
+        ShowTrackContextFlyout(
+            _currentTrack,
+            PlayerBar,
+            e.GetCurrentPoint(PlayerBar).Position);
+        e.Handled = true;
+    }
+
+    /// <summary>
+    /// The full player page offers the same menu on its transport area.
+    /// </summary>
+    private void PlayerPage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (_currentTrack is null ||
+            !e.GetCurrentPoint(PlayerPage).Properties.IsRightButtonPressed)
+        {
+            return;
+        }
+
+        ShowTrackContextFlyout(
+            _currentTrack,
+            PlayerPage,
+            e.GetCurrentPoint(PlayerPage).Position);
+        e.Handled = true;
+    }
+
+    private void ShowTrackContextFlyout(Track track, FrameworkElement target, Point position)
     {
         var flyout = new MenuFlyout();
 
@@ -2200,8 +2323,16 @@ public sealed partial class MainWindow : Window
             Text = Strings.Play,
             Icon = new FontIcon { Glyph = "\uE768" }
         };
-        playItem.Click += async (_, _) => await PlayTrackFromUiAsync(track);
+        playItem.Click += async (_, _) => await PlayTrackInScopeAsync(track, GetPlaybackScopeFor(track));
         flyout.Items.Add(playItem);
+
+        var favoriteItem = new MenuFlyoutItem
+        {
+            Text = track.IsFavorite ? Strings.Unfavorite : Strings.Favorite,
+            Icon = new FontIcon { Glyph = track.FavoriteGlyph }
+        };
+        favoriteItem.Click += async (_, _) => await ToggleFavoriteAsync(track);
+        flyout.Items.Add(favoriteItem);
 
         var removeItem = new MenuFlyoutItem
         {
@@ -2221,7 +2352,7 @@ public sealed partial class MainWindow : Window
         detailsItem.Click += async (_, _) => await ShowTrackDetailsAsync(track);
         flyout.Items.Add(detailsItem);
 
-        flyout.ShowAt(QueueList, new FlyoutShowOptions { Position = position });
+        flyout.ShowAt(target, new FlyoutShowOptions { Position = position });
     }
 
     private static T? FindAncestor<T>(DependencyObject? element) where T : DependencyObject
@@ -2576,8 +2707,7 @@ public sealed partial class MainWindow : Window
         FullArt.Visibility = track.Artwork is null ? Visibility.Collapsed : Visibility.Visible;
         FullArtPlaceholder.Visibility = track.Artwork is null ? Visibility.Visible : Visibility.Collapsed;
 
-        _isFavorite = false;
-        UpdateFavoriteIcon();
+        UpdateTrackFavoriteButtons(track);
 
         SetProgressMaximum(track.Duration.TotalSeconds);
         UpdateTimeLabels(TimeSpan.Zero, track.Duration);
@@ -2619,8 +2749,7 @@ public sealed partial class MainWindow : Window
         FullTotalTimeText.Text = "0:00";
         PlayPauseIcon.Glyph = "\uE768";
         FullPlayPauseIcon.Glyph = "\uE768";
-        _isFavorite = false;
-        UpdateFavoriteIcon();
+        UpdateTrackFavoriteButtons(null);
         UpdateTransportUi();
         NowStateText.Text = Strings.Ready;
         _ = UpdateSystemMediaInfoAsync(null);

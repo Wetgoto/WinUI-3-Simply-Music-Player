@@ -119,6 +119,10 @@ public sealed partial class MainWindow
         {
             _searchReturnPage = "recent";
         }
+        else if (FavoritesPage.Visibility == Visibility.Visible)
+        {
+            _searchReturnPage = "favorites";
+        }
         else if (CustomPlaylistPage.Visibility == Visibility.Visible)
         {
             _searchReturnPage = "custom";
@@ -135,6 +139,7 @@ public sealed partial class MainWindow
 
         MainWorkspace.Visibility = Visibility.Collapsed;
         RecentPage.Visibility = Visibility.Collapsed;
+        HideFavoritesPage();
         CustomPlaylistPage.Visibility = Visibility.Collapsed;
         SettingsPage.Visibility = Visibility.Collapsed;
         SearchPage.Visibility = Visibility.Visible;
@@ -155,14 +160,24 @@ public sealed partial class MainWindow
                 MainWorkspace.Visibility = Visibility.Collapsed;
                 CustomPlaylistPage.Visibility = Visibility.Collapsed;
                 SettingsPage.Visibility = Visibility.Collapsed;
+                HideFavoritesPage();
                 RecentPage.Visibility = Visibility.Visible;
                 RefreshRecentUi();
+                break;
+
+            case "favorites":
+                MainWorkspace.Visibility = Visibility.Collapsed;
+                RecentPage.Visibility = Visibility.Collapsed;
+                CustomPlaylistPage.Visibility = Visibility.Collapsed;
+                SettingsPage.Visibility = Visibility.Collapsed;
+                ShowFavoritesPage();
                 break;
 
             case "custom" when _searchReturnPlaylist is not null:
                 MainWorkspace.Visibility = Visibility.Collapsed;
                 RecentPage.Visibility = Visibility.Collapsed;
                 SettingsPage.Visibility = Visibility.Collapsed;
+                HideFavoritesPage();
                 CustomPlaylistPage.Visibility = Visibility.Visible;
                 CustomPlaylistTitleText.Text = _searchReturnPlaylist.Name;
                 _ = LoadCustomPlaylistTracksAsync(_searchReturnPlaylist);
@@ -171,12 +186,14 @@ public sealed partial class MainWindow
             case "settings":
                 MainWorkspace.Visibility = Visibility.Collapsed;
                 RecentPage.Visibility = Visibility.Collapsed;
+                HideFavoritesPage();
                 CustomPlaylistPage.Visibility = Visibility.Collapsed;
                 SettingsPage.Visibility = Visibility.Visible;
                 break;
 
             default:
                 RecentPage.Visibility = Visibility.Collapsed;
+                HideFavoritesPage();
                 CustomPlaylistPage.Visibility = Visibility.Collapsed;
                 SettingsPage.Visibility = Visibility.Collapsed;
                 MainWorkspace.Visibility = Visibility.Visible;

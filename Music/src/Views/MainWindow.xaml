@@ -758,6 +758,18 @@
                         </Button>
 
                         <Button
+                            x:Name="FavoritesNavButton"
+                            Style="{StaticResource SidebarNavButtonStyle}"
+                            Tag="favorites"
+                            Click="SidebarNavButton_Click"
+                            AutomationProperties.Name="收藏的项目">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE734;" FontSize="16" />
+                                <TextBlock Text="收藏的项目" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='收藏的项目', English='Favorites')" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
                             Tag="local:LocalizedTag(Text='播放列表', English='Playlists')"
                             x:Name="PlaylistSectionButton"
                             Style="{StaticResource SidebarSectionButtonStyle}"
@@ -1666,6 +1678,26 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center">
                                 <Button
+                                    Tag="local:LocalizedTag(Text='收藏', English='Favorite')"
+                                    x:Name="BarFavoriteButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="0,0,6,0"
+                                    Padding="0"
+                                    CornerRadius="16"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="BarFavoriteButton_Click"
+                                    IsEnabled="False"
+                                    ToolTipService.ToolTip="收藏"
+                                    AutomationProperties.Name="收藏">
+                                    <FontIcon
+                                        x:Name="BarFavoriteIcon"
+                                        Glyph="&#xE734;"
+                                        FontSize="16"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                                <Button
                                     Tag="local:LocalizedTag(Text='静音', English='Mute')"
                                     x:Name="VolumeButton"
                                     Width="32"
@@ -1884,6 +1916,178 @@
                             <TextBlock
                                 Tag="local:LocalizedTag(Text='没有匹配的最近项目', English='No matching recent items')"
                                 Text="没有匹配的最近项目"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='换一个关键词，或清空搜索框。', English='Try another keyword, or clear the search box.')"
+                                Text="换一个关键词，或清空搜索框。"
+                                FontSize="12"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Favorites page: every track marked with the star -->
+        <Grid
+            x:Name="FavoritesPage"
+            Grid.Row="1"
+            Grid.Column="1"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="66" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Grid.Row="0"
+                Background="Transparent"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+                <Grid Padding="24,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Spacing="1">
+                        <TextBlock
+                            Tag="local:LocalizedTag(Text='收藏的项目', English='Favorites')"
+                            Text="收藏的项目"
+                            FontSize="22"
+                            FontWeight="SemiBold" />
+                        <TextBlock
+                            Tag="local:LocalizedTag(Text='0 个项目')"
+                            x:Name="FavoritesCountText"
+                            Text="0 个项目"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        VerticalAlignment="Center">
+                        <AutoSuggestBox
+                            Tag="local:LocalizedTag(Text='搜索收藏的项目', English='Search favorites')"
+                            x:Name="FavoritesSearchBox"
+                            Width="190"
+                            Height="36"
+                            Padding="12,0"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            FontSize="12"
+                            CornerRadius="8"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            PlaceholderText="搜索收藏的项目"
+                            Visibility="Collapsed"
+                            TextChanged="FavoritesSearchBox_TextChanged"
+                            AutomationProperties.Name="搜索收藏的项目" />
+                        <Button
+                            Tag="local:LocalizedTag(Text='搜索', English='Search')"
+                            x:Name="FavoritesSearchButton"
+                            Width="36"
+                            Height="36"
+                            Padding="0"
+                            CornerRadius="8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="FavoritesSearchButton_Click"
+                            ToolTipService.ToolTip="搜索"
+                            AutomationProperties.Name="搜索收藏的项目">
+                            <FontIcon Glyph="&#xE721;" FontSize="15" />
+                        </Button>
+                        <Button
+                            Tag="local:LocalizedTag(Text='排序', English='Sort')"
+                            x:Name="FavoritesSortButton"
+                            Width="36"
+                            Height="36"
+                            Padding="0"
+                            CornerRadius="8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="FavoritesSortButton_Click"
+                            ToolTipService.ToolTip="排序"
+                            AutomationProperties.Name="排序收藏的项目">
+                            <FontIcon Glyph="&#xE8CB;" FontSize="15" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid
+                Grid.Row="1"
+                Margin="20,12,20,16">
+                <Border
+                    CornerRadius="14"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                    <Grid>
+                        <ListView
+                            Tag="local:LocalizedTag(Text='收藏的曲目', English='Favorite tracks')"
+                            x:Name="FavoritesList"
+                            Padding="6"
+                            SelectionMode="Single"
+                            DoubleTapped="FavoritesList_DoubleTapped"
+                            AutomationProperties.Name="收藏的曲目"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource TrackRowTemplate}">
+                        </ListView>
+
+                        <StackPanel
+                            x:Name="FavoritesEmptyPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="10"
+                            MaxWidth="300"
+                            Visibility="Collapsed">
+                            <FontIcon
+                                Glyph="&#xE734;"
+                                FontSize="34"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='还没有收藏的歌曲', English='No favorites yet')"
+                                Text="还没有收藏的歌曲"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='在曲目行、播放页或播放条上点击收藏图标，收藏的歌会出现在这里。', English='Press the star on a track row, the player page or the player bar to keep songs here.')"
+                                Text="在曲目行、播放页或播放条上点击收藏图标，收藏的歌会出现在这里。"
+                                FontSize="12"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+
+                        <StackPanel
+                            x:Name="FavoritesNoResultsPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="10"
+                            MaxWidth="280"
+                            Visibility="Collapsed">
+                            <FontIcon
+                                Glyph="&#xE721;"
+                                FontSize="34"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='没有匹配的收藏项目', English='No matching favorites')"
+                                Text="没有匹配的收藏项目"
                                 FontSize="16"
                                 FontWeight="SemiBold"
                                 HorizontalAlignment="Center" />
