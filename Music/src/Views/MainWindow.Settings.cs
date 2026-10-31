@@ -46,6 +46,7 @@ public sealed partial class MainWindow
         LanguageComboBox.SelectedIndex = _language == AppLanguage.English ? 1 : 0;
         PromptPlaylistNameSwitch.IsOn = _settings.PromptPlaylistName;
         TransparentBackgroundSwitch.IsOn = _settings.TransparentBackground;
+        ConfirmDeleteSwitch.IsOn = _settings.ConfirmBeforeDelete;
 
         // After the selection is in place, so the closed combo shows the
         // translated choice rather than the XAML default text.
@@ -454,6 +455,17 @@ public sealed partial class MainWindow
 
         ApplyTransparentBackground(TransparentBackgroundSwitch.IsOn);
         _settings.TransparentBackground = TransparentBackgroundSwitch.IsOn;
+        AppSettingsStore.Save(_settings);
+    }
+
+    private void ConfirmDeleteSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_isApplyingSettings || ConfirmDeleteSwitch is null)
+        {
+            return;
+        }
+
+        _settings.ConfirmBeforeDelete = ConfirmDeleteSwitch.IsOn;
         AppSettingsStore.Save(_settings);
     }
 

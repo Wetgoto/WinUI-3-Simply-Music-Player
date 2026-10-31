@@ -110,6 +110,7 @@ public sealed partial class MainWindow : Window
 
         InitializeFavorites();
         InitializePlayerPagePanel();
+        InitializeLibrary();
 
         // Catch right-taps even if a ListViewItem already handled the event.
         QueueList.AddHandler(
@@ -974,7 +975,21 @@ public sealed partial class MainWindow : Window
             RecentPage.Visibility = Visibility.Collapsed;
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
             SettingsPage.Visibility = Visibility.Collapsed;
+            LibraryPage.Visibility = Visibility.Collapsed;
             ShowFavoritesPage();
+            return;
+        }
+
+        if (key == "library")
+        {
+            RefreshLibrary();
+            MainWorkspace.Visibility = Visibility.Collapsed;
+            RecentPage.Visibility = Visibility.Collapsed;
+            HideFavoritesPage();
+            CustomPlaylistPage.Visibility = Visibility.Collapsed;
+            SearchPage.Visibility = Visibility.Collapsed;
+            SettingsPage.Visibility = Visibility.Collapsed;
+            LibraryPage.Visibility = Visibility.Visible;
             return;
         }
 
@@ -984,6 +999,7 @@ public sealed partial class MainWindow : Window
             RecentPage.Visibility = Visibility.Collapsed;
             HideFavoritesPage();
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
+            LibraryPage.Visibility = Visibility.Collapsed;
             SearchPage.Visibility = Visibility.Collapsed;
             SettingsPage.Visibility = Visibility.Visible;
         }
@@ -1667,11 +1683,15 @@ public sealed partial class MainWindow : Window
         await Task.WhenAll(
             AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds),
             AnimateElementOpacityAsync(HomeSurface, 0, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(PlayerBar, 0, PlayerPageFadeMilliseconds));
+            AnimateElementOpacityAsync(PlayerBar, 0, PlayerPageFadeMilliseconds),
+            AnimateElementOpacityAsync(NavigationRail, 0, PlayerPageFadeMilliseconds));
 
         HomeSurface.Visibility = Visibility.Collapsed;
+        NavigationRail.Visibility = Visibility.Collapsed;
+        PlayerBar.Visibility = Visibility.Collapsed;
         HomeSurface.Opacity = 1;
         PlayerBar.Opacity = 1;
+        NavigationRail.Opacity = 1;
         _isPageTransitioning = false;
     }
 
@@ -1701,14 +1721,18 @@ public sealed partial class MainWindow : Window
         _isPageTransitioning = true;
 
         HomeSurface.Visibility = Visibility.Visible;
+        NavigationRail.Visibility = Visibility.Visible;
+        PlayerBar.Visibility = Visibility.Visible;
         HomeSurface.Opacity = 0;
         PlayerBar.Opacity = 0;
+        NavigationRail.Opacity = 0;
         BackButton.Visibility = Visibility.Collapsed;
 
         await Task.WhenAll(
             AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds),
             AnimateElementOpacityAsync(HomeSurface, 1, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(PlayerBar, 1, PlayerPageFadeMilliseconds));
+            AnimateElementOpacityAsync(PlayerBar, 1, PlayerPageFadeMilliseconds),
+            AnimateElementOpacityAsync(NavigationRail, 1, PlayerPageFadeMilliseconds));
 
         PlayerPage.Visibility = Visibility.Collapsed;
         PlayerPage.Opacity = 1;
@@ -2975,6 +2999,9 @@ public sealed partial class MainWindow : Window
 
         CurrentTimeText.Text = FormatClock(session.Position);
         FullCurrentTimeText.Text = FormatClock(session.Position);
+
+        // Keep the lyrics panel in step with playback.
+        UpdateLyricHighlight(session.Position);
 
         if (duration > TimeSpan.Zero)
         {

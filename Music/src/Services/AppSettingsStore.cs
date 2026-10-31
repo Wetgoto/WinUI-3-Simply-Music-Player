@@ -22,6 +22,12 @@ public sealed class AppSettings
     /// window a solid, opaque background.
     /// </summary>
     public bool TransparentBackground { get; set; } = true;
+
+    /// <summary>
+    /// Show a confirmation dialog before deleting tracks or playlists. When off,
+    /// deletions happen immediately.
+    /// </summary>
+    public bool ConfirmBeforeDelete { get; set; } = true;
 }
 
 /// <summary>

@@ -731,26 +731,31 @@ public sealed partial class MainWindow
             return;
         }
 
-        var dialog = new ContentDialog
+        // The confirmation dialog is optional; when the user turned it off the
+        // playlist is removed straight away.
+        if (_settings.ConfirmBeforeDelete)
         {
-            XamlRoot = RootGrid.XamlRoot,
-            Title = Strings.DeletePlaylistTitle(item.Name),
-            Content = Strings.DeletePlaylistDetail,
-            PrimaryButtonText = Strings.Delete,
-            CloseButtonText = Strings.Cancel,
-            DefaultButton = ContentDialogButton.Close
-        };
+            var dialog = new ContentDialog
+            {
+                XamlRoot = RootGrid.XamlRoot,
+                Title = Strings.DeletePlaylistTitle(item.Name),
+                Content = Strings.DeletePlaylistDetail,
+                PrimaryButtonText = Strings.Delete,
+                CloseButtonText = Strings.Cancel,
+                DefaultButton = ContentDialogButton.Close
+            };
 
-        try
-        {
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            try
+            {
+                if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+                {
+                    return;
+                }
+            }
+            catch
             {
                 return;
             }
-        }
-        catch
-        {
-            return;
         }
 
         var wasSelected = ReferenceEquals(_selectedCustomPlaylist, item);

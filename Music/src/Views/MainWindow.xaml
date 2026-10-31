@@ -279,7 +279,7 @@
 
                                 <Border
                                     x:Name="HoverLayer"
-                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                    Background="Transparent"
                                     CornerRadius="10"
                                     IsHitTestVisible="False"
                                     Opacity="0" />
@@ -803,6 +803,18 @@
                         </Button>
 
                         <Button
+                            x:Name="LibraryNavButton"
+                            Style="{StaticResource SidebarNavButtonStyle}"
+                            Tag="library"
+                            Click="SidebarNavButton_Click"
+                            AutomationProperties.Name="资料库">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE8F1;" FontSize="16" />
+                                <TextBlock Text="资料库" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='资料库', English='Library')" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
                             Tag="local:LocalizedTag(Text='播放列表', English='Playlists')"
                             x:Name="PlaylistSectionButton"
                             Style="{StaticResource SidebarSectionButtonStyle}"
@@ -1135,7 +1147,7 @@
 
                                                     <Border
                                                         x:Name="HoverLayer"
-                                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                        Background="Transparent"
                                                         CornerRadius="10"
                                                         IsHitTestVisible="False"
                                                         Opacity="0" />
@@ -2521,6 +2533,125 @@
             </Grid>
         </Grid>
 
+        <!--
+            Library page: every track the app knows about, across the default
+            queue and all custom playlists, with its own search filter.
+        -->
+        <Grid
+            x:Name="LibraryPage"
+            Grid.Row="1"
+            Grid.Column="1"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="66" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Grid.Row="0"
+                Background="Transparent"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+                <Grid Padding="24,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Spacing="1">
+                        <TextBlock
+                            Tag="local:LocalizedTag(Text='资料库', English='Library')"
+                            Text="资料库"
+                            FontSize="22"
+                            FontWeight="SemiBold" />
+                        <TextBlock
+                            x:Name="LibraryCountText"
+                            Text="0 首曲目"
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        VerticalAlignment="Center">
+                        <AutoSuggestBox
+                            Tag="local:LocalizedTag(Text='搜索资料库', English='Search library')"
+                            x:Name="LibrarySearchBox"
+                            Width="190"
+                            Height="36"
+                            Padding="12,0"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            FontSize="12"
+                            CornerRadius="8"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            PlaceholderText="搜索资料库"
+                            QueryIcon="Find"
+                            TextChanged="LibrarySearchBox_TextChanged"
+                            AutomationProperties.Name="搜索资料库" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid
+                Grid.Row="1"
+                Margin="20,12,20,16">
+                <Border
+                    CornerRadius="14"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                    <Grid>
+                        <ListView
+                            Tag="local:LocalizedTag(Text='资料库曲目', English='Library tracks')"
+                            x:Name="LibraryList"
+                            Padding="6"
+                            SelectionMode="Single"
+                            DoubleTapped="LibraryList_DoubleTapped"
+                            AutomationProperties.Name="资料库曲目"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource TrackRowTemplate}">
+                        </ListView>
+
+                        <StackPanel
+                            x:Name="LibraryEmptyPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="10"
+                            MaxWidth="280"
+                            Visibility="Collapsed">
+                            <FontIcon
+                                Glyph="&#xE8F1;"
+                                FontSize="34"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='资料库还是空的', English='Your library is empty')"
+                                Text="资料库还是空的"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='导入本地音乐后，所有曲目都会汇总到这里。', English='Import local music and every track shows up here.')"
+                                Text="导入本地音乐后，所有曲目都会汇总到这里。"
+                                FontSize="12"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
         <!-- Settings page -->
         <Grid
             x:Name="SettingsPage"
@@ -2670,7 +2801,7 @@
                             <Grid Padding="0,14" ColumnSpacing="24">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel
@@ -2692,6 +2823,7 @@
                                 <ToggleSwitch
                                     Tag="local:LocalizedTag(Text='新建播放列表时提示命名', English='Ask for a name when creating a playlist')"
                                     x:Name="PromptPlaylistNameSwitch"
+                                    HorizontalAlignment="Right"
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
                                     OnContent="开"
@@ -2707,7 +2839,7 @@
                             <Grid Padding="0,14" ColumnSpacing="24">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel
@@ -2729,12 +2861,51 @@
                                 <ToggleSwitch
                                     Tag="local:LocalizedTag(Text='背景透明效果', English='Transparent background')"
                                     x:Name="TransparentBackgroundSwitch"
+                                    HorizontalAlignment="Right"
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
                                     OnContent="开"
                                     OffContent="关"
                                     Toggled="TransparentBackgroundSwitch_Toggled"
                                     AutomationProperties.Name="背景透明效果" />
+                            </Grid>
+
+                            <Border
+                                Height="1"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                            <Grid Padding="0,14" ColumnSpacing="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    Spacing="3"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='删除时显示确认窗口', English='Confirm before deleting')"
+                                        Text="删除时显示确认窗口"
+                                        FontSize="14"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='关闭后删除曲目和播放列表将不再询问。', English='When off, deleting tracks and playlists happens immediately.')"
+                                        Text="关闭后删除曲目和播放列表将不再询问。"
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <ToggleSwitch
+                                    Tag="local:LocalizedTag(Text='删除时显示确认窗口', English='Confirm before deleting')"
+                                    x:Name="ConfirmDeleteSwitch"
+                                    HorizontalAlignment="Right"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    OnContent="开"
+                                    OffContent="关"
+                                    Toggled="ConfirmDeleteSwitch_Toggled"
+                                    AutomationProperties.Name="删除时显示确认窗口" />
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -2827,7 +2998,7 @@
             Grid.Row="1"
             Grid.RowSpan="2"
             Grid.ColumnSpan="2"
-            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+            Background="Transparent"
             Opacity="0"
             Visibility="Collapsed"
             SizeChanged="PlayerPage_SizeChanged">
@@ -3196,27 +3367,67 @@
                         </Button>
                     </StackPanel>
 
-                    <!-- Lyrics view -->
+                    <!--
+                        Lyrics view. Modelled on the Apple Music panel: a single
+                        centred column of large lines, the active line bright and
+                        the rest dimmed. Tapping a line seeks to its timestamp.
+                        Padding is deliberately generous so the first and last
+                        lines can still centre in the viewport.
+                    -->
                     <ScrollViewer
                         x:Name="LyricsScrollViewer"
                         Grid.Row="1"
-                        Padding="24,0,24,24"
+                        Padding="24,120,24,160"
                         VerticalScrollBarVisibility="Hidden"
-                        HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl x:Name="LyricsList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollMode="Enabled">
+                        <ListView
+                            x:Name="LyricsList"
+                            SelectionMode="None"
+                            IsItemClickEnabled="True"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            ItemClick="LyricsList_ItemClick"
+                            AutomationProperties.Name="歌词">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <!-- No hover or selection chrome: the
+                                                     lyric line is the only visual. -->
+                                                <ContentPresenter
+                                                    Content="{TemplateBinding Content}"
+                                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    Padding="0" />
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:LyricLine">
                                     <TextBlock
-                                        Text="{Binding}"
-                                        FontSize="20"
-                                        FontWeight="SemiBold"
+                                        Text="{x:Bind Text, Mode=OneWay}"
+                                        FontSize="26"
+                                        FontWeight="Bold"
+                                        LineHeight="38"
                                         TextWrapping="Wrap"
                                         TextAlignment="Center"
-                                        Margin="0,10"
-                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,14"
+                                        Foreground="{x:Bind Brush, Mode=OneWay}"
+                                        Opacity="{x:Bind Opacity, Mode=OneWay}" />
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            </ListView.ItemTemplate>
+                        </ListView>
                     </ScrollViewer>
 
                     <!-- Next-up queue view -->
