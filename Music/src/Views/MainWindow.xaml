@@ -371,12 +371,7 @@
                             IsTabStop="False"
                             Tag="Marquee"
                             SizeChanged="Marquee_SizeChanged">
-                            <TextBlock
-                                Text="{x:Bind QueueTitle, Mode=OneWay}"
-                                FontSize="14"
-                                FontWeight="SemiBold"
-                                TextWrapping="NoWrap"
-                                IsTextSelectionEnabled="False" />
+                            <TextBlock Text="{x:Bind QueueTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" TextWrapping="NoWrap" IsTextSelectionEnabled="False" />
                         </ScrollViewer>
                         <ScrollViewer
                             HorizontalScrollMode="Enabled"
@@ -386,12 +381,7 @@
                             IsTabStop="False"
                             Tag="Marquee"
                             SizeChanged="Marquee_SizeChanged">
-                            <TextBlock
-                                Text="{x:Bind RecentSubtitle, Mode=OneWay}"
-                                FontSize="11"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="NoWrap"
-                                IsTextSelectionEnabled="False" />
+                            <TextBlock Text="{x:Bind RecentSubtitle, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" IsTextSelectionEnabled="False" />
                         </ScrollViewer>
                     </StackPanel>
 
