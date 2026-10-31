@@ -1042,9 +1042,10 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Navigates to a page. The visible surface fades out, the page is swapped
-    /// while nothing is visible and the new page fades back in, so two pages are
-    /// never drawn on top of each other even for a single frame.
+    /// Navigates to a page. Going to or from the full-window player page is a
+    /// dissolve: the surface fades out, the page is swapped while nothing is
+    /// visible and the new page fades back in, so the two pages are never drawn
+    /// on top of each other. Switches between the list pages stay instant.
     /// </summary>
     private void NavigateTo(AppPage page)
     {
@@ -1059,7 +1060,25 @@ public sealed partial class MainWindow : Window
         }
 
         _currentPage = page;
+
+        if (_visiblePage != AppPage.Player && page != AppPage.Player)
+        {
+            // Sidebar navigation between the list pages: no fade, just swap.
+            CancelPageFade();
+            ShowPage(page);
+            return;
+        }
+
         _ = FadeToPageAsync(page);
+    }
+
+    /// <summary>Stops a fade in flight and puts the surface back to full opacity.</summary>
+    private void CancelPageFade()
+    {
+        _navigationToken++;
+        _contentFadeStoryboard?.Stop();
+        _contentFadeStoryboard = null;
+        ContentSurface.Opacity = 1;
     }
 
     private async Task FadeToPageAsync(AppPage page)
