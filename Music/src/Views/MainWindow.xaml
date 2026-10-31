@@ -350,13 +350,11 @@
                         Width="56"
                         Height="56">
                         <!--
-                            A translucent well rather than a solid control fill:
-                            on top of the playing-row highlight a solid fill reads
-                            as a raised inner box.
+                            No well behind the artwork: any fill shows up as a
+                            raised inner box on the playing row's highlight. The
+                            placeholder icon sits directly on the row background,
+                            and a real cover still fills the rounded frame.
                         -->
-                        <Border
-                            CornerRadius="10"
-                            Background="{ThemeResource SubtleFillColorSecondaryBrush}" />
                         <FontIcon
                             Glyph="&#xE8D6;"
                             FontSize="22"
@@ -508,13 +506,11 @@
                         Width="56"
                         Height="56">
                         <!--
-                            A translucent well rather than a solid control fill:
-                            on top of the playing-row highlight a solid fill reads
-                            as a raised inner box.
+                            No well behind the artwork: any fill shows up as a
+                            raised inner box on the playing row's highlight. The
+                            placeholder icon sits directly on the row background,
+                            and a real cover still fills the rounded frame.
                         -->
-                        <Border
-                            CornerRadius="10"
-                            Background="{ThemeResource SubtleFillColorSecondaryBrush}" />
                         <FontIcon
                             Glyph="&#xE8D6;"
                             FontSize="22"
