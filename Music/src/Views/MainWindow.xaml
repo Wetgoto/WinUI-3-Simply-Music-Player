@@ -616,9 +616,14 @@
             <ColumnDefinition Width="260" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <!--
+            Row 1 holds every page; row 2 holds the player bar. Keeping them in
+            separate rows means no page can draw under the bar.
+        -->
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!--
@@ -844,9 +849,8 @@
         </Border>
 
         <!--
-            Home surface: playlists on top, player bar underneath. It fills the
-            content column as one block so the page switch can cross-fade the
-            whole thing at once instead of fading two unrelated regions.
+            Home surface: the playlist pages only. The player bar is a root-grid
+            sibling in row 2, so pages never extend underneath it.
         -->
         <Grid
             x:Name="HomeSurface"
@@ -854,7 +858,6 @@
             Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
         <!-- Main workspace -->
@@ -1465,324 +1468,327 @@
 
         </Grid>
 
-            <!-- Player control bar -->
-            <Border
-                x:Name="PlayerBar"
-                Grid.Row="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,1,0,0"
-                Padding="20,10,20,10">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="250" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+        </Grid>
 
-                    <!-- Clicking anywhere in the player bar opens the full player page -->
-                    <Button
-                        Tag="local:LocalizedTag(Text='打开播放页面', English='Open player page')"
-                        x:Name="NowPlayingAreaButton"
-                        Grid.ColumnSpan="2"
-                        Margin="-14,-4"
-                        Padding="14,4"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        VerticalContentAlignment="Center"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        CornerRadius="14"
-                        Click="NowPlayingAreaButton_Click"
-                        ToolTipService.ToolTip="打开播放页面"
-                        AutomationProperties.Name="打开播放页面">
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="150" />
-                            </Grid.ColumnDefinitions>
+        <!-- Player control bar -->
+        <Border
+            x:Name="PlayerBar"
+            Grid.Row="2"
+            Grid.Column="1"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="20,10,20,10">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                            <!-- Current cover -->
-                            <Grid
-                                x:Name="HeroCoverHost"
-                                Width="72"
-                                Height="72"
-                                VerticalAlignment="Center">
-                                <Border
-                                    CornerRadius="12"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                                    <Grid>
-                                        <FontIcon
-                                            x:Name="HeroArtPlaceholder"
-                                            Glyph="&#xE8D6;"
-                                            FontSize="28"
-                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center" />
-                                        <Image
-                                            x:Name="HeroArt"
-                                            Stretch="UniformToFill"
-                                            Visibility="Collapsed" />
-                                    </Grid>
-                                </Border>
-                                <Border
-                                    CornerRadius="12"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    IsHitTestVisible="False" />
-                            </Grid>
+                <!-- Clicking anywhere in the player bar opens the full player page -->
+                <Button
+                    Tag="local:LocalizedTag(Text='打开播放页面', English='Open player page')"
+                    x:Name="NowPlayingAreaButton"
+                    Grid.ColumnSpan="2"
+                    Margin="-14,-4"
+                    Padding="14,4"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    VerticalContentAlignment="Center"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="14"
+                    Click="NowPlayingAreaButton_Click"
+                    ToolTipService.ToolTip="打开播放页面"
+                    AutomationProperties.Name="打开播放页面">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
 
-                            <!-- Current track information -->
-                            <StackPanel
-                                Grid.Column="1"
-                                Spacing="3"
-                                VerticalAlignment="Center">
-                                <ScrollViewer
-                                    HorizontalScrollMode="Enabled"
-                                    HorizontalScrollBarVisibility="Hidden"
-                                    VerticalScrollMode="Disabled"
-                                    VerticalScrollBarVisibility="Hidden"
-                                    IsTabStop="False"
-                                    AutomationProperties.HelpText="MarqueeScroll"
-                                    SizeChanged="Marquee_SizeChanged">
-                                    <TextBlock
-                                        Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
-                                        x:Name="HeroTitle"
-                                        Text="未播放"
-                                        FontSize="15"
-                                        FontWeight="SemiBold"
-                                        TextWrapping="NoWrap" />
-                                </ScrollViewer>
-                                <ScrollViewer
-                                    HorizontalScrollMode="Enabled"
-                                    HorizontalScrollBarVisibility="Hidden"
-                                    VerticalScrollMode="Disabled"
-                                    VerticalScrollBarVisibility="Hidden"
-                                    IsTabStop="False"
-                                    AutomationProperties.HelpText="MarqueeScroll"
-                                    SizeChanged="Marquee_SizeChanged">
-                                    <TextBlock
-                                        Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
-                                        x:Name="HeroAlbum"
-                                        Text="从播放列表选择一首歌曲"
-                                        FontSize="11"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        TextWrapping="NoWrap" />
-                                </ScrollViewer>
-                                <TextBlock
-                                    Tag="local:LocalizedTag(Text='准备就绪')"
-                                    x:Name="NowStateText"
-                                    Text="准备就绪"
-                                    FontSize="10"
-                                    Visibility="Collapsed"
-                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-
-                    <!-- Progress and transport controls -->
-                    <Grid Grid.Column="1" RowSpacing="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="40" />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock
-                                x:Name="CurrentTimeText"
-                                Text="0:00"
-                                FontSize="10"
-                                VerticalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            <Slider
-                                Tag="local:LocalizedTag(Text='播放进度', English='Playback progress')"
-                                x:Name="ProgressSlider"
-                                Grid.Column="1"
-                                Minimum="0"
-                                Maximum="1"
-                                Value="0"
-                                StepFrequency="1"
-                                IsThumbToolTipEnabled="False"
-                                IsEnabled="False"
-                                ValueChanged="ProgressSlider_ValueChanged"
-                                AutomationProperties.Name="播放进度" />
-                            <TextBlock
-                                x:Name="TotalTimeText"
-                                Grid.Column="2"
-                                Text="0:00"
-                                FontSize="10"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <!-- Current cover -->
+                        <Grid
+                            x:Name="HeroCoverHost"
+                            Width="72"
+                            Height="72"
+                            VerticalAlignment="Center">
+                            <Border
+                                CornerRadius="12"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}">
+                                <Grid>
+                                    <FontIcon
+                                        x:Name="HeroArtPlaceholder"
+                                        Glyph="&#xE8D6;"
+                                        FontSize="28"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center" />
+                                    <Image
+                                        x:Name="HeroArt"
+                                        Stretch="UniformToFill"
+                                        Visibility="Collapsed" />
+                                </Grid>
+                            </Border>
+                            <Border
+                                CornerRadius="12"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                IsHitTestVisible="False" />
                         </Grid>
 
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel
-                                Grid.Column="1"
-                                Orientation="Horizontal"
-                                Spacing="10"
-                                VerticalAlignment="Center">
-                                <Button
-                                    Tag="local:LocalizedTag(Text='循环播放：关闭', English='Repeat: off')"
-                                    x:Name="RepeatButton"
-                                    Width="34"
-                                    Height="34"
-                                    Padding="0"
-                                    CornerRadius="17"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="RepeatButton_Click"
-                                    ToolTipService.ToolTip="循环播放：关闭"
-                                    AutomationProperties.Name="循环播放">
-                                    <Grid x:Name="RepeatGlyphHost">
-                                        <FontIcon
-                                            x:Name="RepeatIcon"
-                                            Glyph="&#xE8EE;"
-                                            FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
-                                            FontSize="16"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </Grid>
-                                </Button>
-
-                                <Button
-                                    Tag="local:LocalizedTag(Text='上一首', English='Previous')"
-                                    x:Name="PreviousButton"
-                                    Width="38"
-                                    Height="38"
-                                    Padding="0"
-                                    CornerRadius="19"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="PreviousButton_Click"
-                                    IsEnabled="False"
-                                    ToolTipService.ToolTip="上一首"
-                                    AutomationProperties.Name="上一首">
-                                    <FontIcon Glyph="&#xE892;" FontSize="18" />
-                                </Button>
-
-                                <Button
-                                    Tag="local:LocalizedTag(Text='播放 / 暂停', English='Play / Pause')"
-                                    x:Name="PlayPauseButton"
-                                    Width="48"
-                                    Height="48"
-                                    Padding="0"
-                                    CornerRadius="24"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    Click="PlayPauseButton_Click"
-                                    IsEnabled="False"
-                                    ToolTipService.ToolTip="播放 / 暂停"
-                                    AutomationProperties.Name="播放或暂停">
-                                    <FontIcon
-                                        x:Name="PlayPauseIcon"
-                                        Glyph="&#xE768;"
-                                        FontSize="19"
-                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                                </Button>
-
-                                <Button
-                                    Tag="local:LocalizedTag(Text='下一首', English='Next')"
-                                    x:Name="NextButton"
-                                    Width="38"
-                                    Height="38"
-                                    Padding="0"
-                                    CornerRadius="19"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="NextButton_Click"
-                                    IsEnabled="False"
-                                    ToolTipService.ToolTip="下一首"
-                                    AutomationProperties.Name="下一首">
-                                    <FontIcon Glyph="&#xE893;" FontSize="18" />
-                                </Button>
-                            </StackPanel>
-
-                            <StackPanel
-                                Grid.Column="2"
-                                Orientation="Horizontal"
-                                Spacing="7"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center">
-                                <Button
-                                    Tag="local:LocalizedTag(Text='收藏', English='Favorite')"
-                                    x:Name="BarFavoriteButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="0,0,6,0"
-                                    Padding="0"
-                                    CornerRadius="16"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="BarFavoriteButton_Click"
-                                    IsEnabled="False"
-                                    ToolTipService.ToolTip="收藏"
-                                    AutomationProperties.Name="收藏">
-                                    <FontIcon
-                                        x:Name="BarFavoriteIcon"
-                                        Glyph="&#xE734;"
-                                        FontSize="16"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Button>
-                                <Button
-                                    Tag="local:LocalizedTag(Text='静音', English='Mute')"
-                                    x:Name="VolumeButton"
-                                    Width="32"
-                                    Height="32"
-                                    Padding="0"
-                                    CornerRadius="16"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="VolumeButton_Click"
-                                    ToolTipService.ToolTip="静音"
-                                    AutomationProperties.Name="静音">
-                                    <FontIcon
-                                        x:Name="VolumeIcon"
-                                        Glyph="&#xE767;"
-                                        FontSize="16"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Button>
-                                <Slider
-                                    Tag="local:LocalizedTag(Text='音量', English='Volume')"
-                                    x:Name="VolumeSlider"
-                                    Width="92"
-                                    Minimum="0"
-                                    Maximum="100"
-                                    Value="65"
-                                    StepFrequency="5"
-                                    TickFrequency="5"
-                                    SnapsTo="StepValues"
-                                    IsThumbToolTipEnabled="True"
-                                    ValueChanged="VolumeSlider_ValueChanged"
-                                    VerticalAlignment="Center"
-                                    ToolTipService.ToolTip="音量"
-                                    AutomationProperties.Name="音量" />
+                        <!-- Current track information -->
+                        <StackPanel
+                            Grid.Column="1"
+                            Spacing="3"
+                            VerticalAlignment="Center">
+                            <ScrollViewer
+                                HorizontalScrollMode="Enabled"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollMode="Disabled"
+                                VerticalScrollBarVisibility="Hidden"
+                                IsTabStop="False"
+                                AutomationProperties.HelpText="MarqueeScroll"
+                                SizeChanged="Marquee_SizeChanged">
                                 <TextBlock
-                                    Tag="local:LocalizedTag(Text='当前音量', English='Current volume')"
-                                    x:Name="VolumeValueText"
-                                    Text="65"
-                                    Width="22"
+                                    Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
+                                    x:Name="HeroTitle"
+                                    Text="未播放"
+                                    FontSize="15"
+                                    FontWeight="SemiBold"
+                                    TextWrapping="NoWrap" />
+                            </ScrollViewer>
+                            <ScrollViewer
+                                HorizontalScrollMode="Enabled"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollMode="Disabled"
+                                VerticalScrollBarVisibility="Hidden"
+                                IsTabStop="False"
+                                AutomationProperties.HelpText="MarqueeScroll"
+                                SizeChanged="Marquee_SizeChanged">
+                                <TextBlock
+                                    Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
+                                    x:Name="HeroAlbum"
+                                    Text="从播放列表选择一首歌曲"
                                     FontSize="11"
-                                    TextAlignment="Right"
-                                    VerticalAlignment="Center"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    AutomationProperties.Name="当前音量" />
-                            </StackPanel>
-                        </Grid>
+                                    TextWrapping="NoWrap" />
+                            </ScrollViewer>
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='准备就绪')"
+                                x:Name="NowStateText"
+                                Text="准备就绪"
+                                FontSize="10"
+                                Visibility="Collapsed"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Button>
+
+                <!-- Progress and transport controls -->
+                <Grid Grid.Column="1" RowSpacing="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="40" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            x:Name="CurrentTimeText"
+                            Text="0:00"
+                            FontSize="10"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <Slider
+                            Tag="local:LocalizedTag(Text='播放进度', English='Playback progress')"
+                            x:Name="ProgressSlider"
+                            Grid.Column="1"
+                            Minimum="0"
+                            Maximum="1"
+                            Value="0"
+                            StepFrequency="1"
+                            IsThumbToolTipEnabled="False"
+                            IsEnabled="False"
+                            ValueChanged="ProgressSlider_ValueChanged"
+                            AutomationProperties.Name="播放进度" />
+                        <TextBlock
+                            x:Name="TotalTimeText"
+                            Grid.Column="2"
+                            Text="0:00"
+                            FontSize="10"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            VerticalAlignment="Center">
+                            <Button
+                                Tag="local:LocalizedTag(Text='循环播放：关闭', English='Repeat: off')"
+                                x:Name="RepeatButton"
+                                Width="34"
+                                Height="34"
+                                Padding="0"
+                                CornerRadius="17"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="RepeatButton_Click"
+                                ToolTipService.ToolTip="循环播放：关闭"
+                                AutomationProperties.Name="循环播放">
+                                <Grid x:Name="RepeatGlyphHost">
+                                    <FontIcon
+                                        x:Name="RepeatIcon"
+                                        Glyph="&#xE8EE;"
+                                        FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                        FontSize="16"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Grid>
+                            </Button>
+
+                            <Button
+                                Tag="local:LocalizedTag(Text='上一首', English='Previous')"
+                                x:Name="PreviousButton"
+                                Width="38"
+                                Height="38"
+                                Padding="0"
+                                CornerRadius="19"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="PreviousButton_Click"
+                                IsEnabled="False"
+                                ToolTipService.ToolTip="上一首"
+                                AutomationProperties.Name="上一首">
+                                <FontIcon Glyph="&#xE892;" FontSize="18" />
+                            </Button>
+
+                            <Button
+                                Tag="local:LocalizedTag(Text='播放 / 暂停', English='Play / Pause')"
+                                x:Name="PlayPauseButton"
+                                Width="48"
+                                Height="48"
+                                Padding="0"
+                                CornerRadius="24"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="PlayPauseButton_Click"
+                                IsEnabled="False"
+                                ToolTipService.ToolTip="播放 / 暂停"
+                                AutomationProperties.Name="播放或暂停">
+                                <FontIcon
+                                    x:Name="PlayPauseIcon"
+                                    Glyph="&#xE768;"
+                                    FontSize="19"
+                                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Button>
+
+                            <Button
+                                Tag="local:LocalizedTag(Text='下一首', English='Next')"
+                                x:Name="NextButton"
+                                Width="38"
+                                Height="38"
+                                Padding="0"
+                                CornerRadius="19"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="NextButton_Click"
+                                IsEnabled="False"
+                                ToolTipService.ToolTip="下一首"
+                                AutomationProperties.Name="下一首">
+                                <FontIcon Glyph="&#xE893;" FontSize="18" />
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel
+                            Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="7"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                            <Button
+                                Tag="local:LocalizedTag(Text='收藏', English='Favorite')"
+                                x:Name="BarFavoriteButton"
+                                Width="32"
+                                Height="32"
+                                Margin="0,0,6,0"
+                                Padding="0"
+                                CornerRadius="16"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="BarFavoriteButton_Click"
+                                IsEnabled="False"
+                                ToolTipService.ToolTip="收藏"
+                                AutomationProperties.Name="收藏">
+                                <FontIcon
+                                    x:Name="BarFavoriteIcon"
+                                    Glyph="&#xE734;"
+                                    FontSize="16"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
+                            <Button
+                                Tag="local:LocalizedTag(Text='静音', English='Mute')"
+                                x:Name="VolumeButton"
+                                Width="32"
+                                Height="32"
+                                Padding="0"
+                                CornerRadius="16"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="VolumeButton_Click"
+                                ToolTipService.ToolTip="静音"
+                                AutomationProperties.Name="静音">
+                                <FontIcon
+                                    x:Name="VolumeIcon"
+                                    Glyph="&#xE767;"
+                                    FontSize="16"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
+                            <Slider
+                                Tag="local:LocalizedTag(Text='音量', English='Volume')"
+                                x:Name="VolumeSlider"
+                                Width="92"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="65"
+                                StepFrequency="5"
+                                TickFrequency="5"
+                                SnapsTo="StepValues"
+                                IsThumbToolTipEnabled="True"
+                                ValueChanged="VolumeSlider_ValueChanged"
+                                VerticalAlignment="Center"
+                                ToolTipService.ToolTip="音量"
+                                AutomationProperties.Name="音量" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='当前音量', English='Current volume')"
+                                x:Name="VolumeValueText"
+                                Text="65"
+                                Width="22"
+                                FontSize="11"
+                                TextAlignment="Right"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                AutomationProperties.Name="当前音量" />
+                        </StackPanel>
                     </Grid>
                 </Grid>
-            </Border>
-        </Grid>
+            </Grid>
+        </Border>
+
 
         <!-- Recently played projects -->
         <Grid

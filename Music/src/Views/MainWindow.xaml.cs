@@ -1657,9 +1657,8 @@ public sealed partial class MainWindow : Window
 
         _isPageTransitioning = true;
 
-        // Cross-fade the two whole surfaces. The home page (playlists plus the
-        // player bar, which live in one container) fades out as the player page
-        // fades in over the same area, so no half-faded strip is left behind.
+        // Cross-fade the whole home view: the pages and the player bar fade out
+        // as the full-window player page fades in over them.
         PlayerPage.Opacity = 0;
         PlayerPage.Visibility = Visibility.Visible;
         BackButton.Visibility = Visibility.Visible;
@@ -1667,10 +1666,12 @@ public sealed partial class MainWindow : Window
 
         await Task.WhenAll(
             AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(HomeSurface, 0, PlayerPageFadeMilliseconds));
+            AnimateElementOpacityAsync(HomeSurface, 0, PlayerPageFadeMilliseconds),
+            AnimateElementOpacityAsync(PlayerBar, 0, PlayerPageFadeMilliseconds));
 
         HomeSurface.Visibility = Visibility.Collapsed;
         HomeSurface.Opacity = 1;
+        PlayerBar.Opacity = 1;
         _isPageTransitioning = false;
     }
 
@@ -1701,11 +1702,13 @@ public sealed partial class MainWindow : Window
 
         HomeSurface.Visibility = Visibility.Visible;
         HomeSurface.Opacity = 0;
+        PlayerBar.Opacity = 0;
         BackButton.Visibility = Visibility.Collapsed;
 
         await Task.WhenAll(
             AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(HomeSurface, 1, PlayerPageFadeMilliseconds));
+            AnimateElementOpacityAsync(HomeSurface, 1, PlayerPageFadeMilliseconds),
+            AnimateElementOpacityAsync(PlayerBar, 1, PlayerPageFadeMilliseconds));
 
         PlayerPage.Visibility = Visibility.Collapsed;
         PlayerPage.Opacity = 1;
