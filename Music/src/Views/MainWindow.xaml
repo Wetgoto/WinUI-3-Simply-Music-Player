@@ -316,9 +316,13 @@
                         <ColumnDefinition Width="112" />
                     </Grid.ColumnDefinitions>
 
+                    <!--
+                        The highlight sits inside the row padding instead of
+                        bleeding outwards, so every list shows the same inset
+                        rounded block regardless of its container margins.
+                    -->
                     <Border
                         Grid.ColumnSpan="4"
-                        Margin="-10,-6,-10,-6"
                         CornerRadius="10"
                         Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                         Visibility="{x:Bind CurrentVisibility, Mode=OneWay}"
@@ -326,7 +330,6 @@
                     <Border
                         Width="3"
                         Height="40"
-                        Margin="-9,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         CornerRadius="2"
@@ -977,7 +980,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="0">
+                    <Grid Grid.Row="0" Padding="12,8,12,8">
                         <ListView
                             Tag="local:LocalizedTag(Text='播放队列', English='Queue')"
                             x:Name="QueueList"
