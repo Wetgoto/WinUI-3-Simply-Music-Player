@@ -202,6 +202,14 @@ public static class MusicLibrary
             return null;
         }
 
+        // The shell returns a generic file icon for music without embedded
+        // cover art. Showing that would put a document/player glyph where the
+        // app draws its own clean placeholder, so fall back instead.
+        if (IsGenericFileThumbnail(thumbnail))
+        {
+            return null;
+        }
+
         // Copy the thumbnail into memory so the image does not depend on the file stream.
         using var buffer = new InMemoryRandomAccessStream();
         await RandomAccessStream.CopyAsync(thumbnail, buffer);
@@ -213,5 +221,22 @@ public static class MusicLibrary
         };
         await bitmap.SetSourceAsync(buffer);
         return bitmap;
+    }
+
+    /// <summary>
+    /// Shell thumbnails for files without artwork are small PNG icons at the
+    /// default thumbnail size rather than a square cover at the requested size.
+    /// </summary>
+    private static bool IsGenericFileThumbnail(StorageItemThumbnail thumbnail)
+    {
+        // MusicView thumbnails are square; an icon thumbnail is not.
+        var width = thumbnail.OriginalWidth;
+        var height = thumbnail.OriginalHeight;
+        if (width > 0 && height > 0 && width != height)
+        {
+            return true;
+        }
+
+        return thumbnail.Type == ThumbnailType.Icon;
     }
 }

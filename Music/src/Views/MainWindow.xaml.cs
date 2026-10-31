@@ -1118,23 +1118,6 @@ public sealed partial class MainWindow : Window
         Duration
     }
 
-    private void ShowComingSoonFlyout(FrameworkElement target, string feature)
-    {
-        var flyout = new Flyout
-        {
-            Placement = FlyoutPlacementMode.Bottom,
-            Content = new TextBlock
-            {
-                Text = $"{feature}功能将在后续版本加入",
-                FontSize = 12,
-                MaxWidth = 220,
-                TextWrapping = TextWrapping.Wrap
-            }
-        };
-
-        flyout.ShowAt(target);
-    }
-
     private async void EmptyImportButton_Click(object sender, RoutedEventArgs e)
     {
         await ImportFilesAsync();
@@ -1866,47 +1849,9 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var flyout = new MenuFlyout();
-
-        var playItem = new MenuFlyoutItem
-        {
-            Text = Strings.Play,
-            Icon = new FontIcon { Glyph = "\uE768" }
-        };
-        playItem.Click += async (_, _) => await PlayTrackFromUiAsync(track);
-        flyout.Items.Add(playItem);
-
-        if (_queue.Any(candidate =>
-                string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase)))
-        {
-            var removeItem = new MenuFlyoutItem
-            {
-                Text = Strings.RemoveFromDefaultList,
-                Icon = new FontIcon { Glyph = "\uE74D" }
-            };
-            removeItem.Click += (_, _) => RemoveTrack(track);
-            flyout.Items.Add(removeItem);
-        }
-        else
-        {
-            var addItem = new MenuFlyoutItem
-            {
-                Text = Strings.AddToDefaultList,
-                Icon = new FontIcon { Glyph = "\uE710" }
-            };
-            addItem.Click += (_, _) => AddSearchResultToQueue(track);
-            flyout.Items.Add(addItem);
-        }
-
-        var detailsItem = new MenuFlyoutItem
-        {
-            Text = Strings.ViewDetails,
-            Icon = new FontIcon { Glyph = "\uE946" }
-        };
-        detailsItem.Click += async (_, _) => await ShowTrackDetailsAsync(track);
-        flyout.Items.Add(detailsItem);
-
-        flyout.ShowAt(element);
+        // The row's "…" opens the same menu as a right-click, so both entry
+        // points always offer the same commands.
+        ShowTrackContextFlyout(track, element, new Point(0, 0));
     }
 
     private static Track? GetActionTrack(object sender)
@@ -2004,7 +1949,14 @@ public sealed partial class MainWindow : Window
 
     private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
-        ShowComingSoonFlyout((FrameworkElement)sender, Strings.MoreOptions);
+        // The "…" button opens the same menu as a right-click on the track.
+        if (_currentTrack is null || sender is not FrameworkElement element)
+        {
+            SetStatus(Strings.StatusFavoriteNoTrack);
+            return;
+        }
+
+        ShowTrackContextFlyout(_currentTrack, element, new Point(0, 0));
     }
 
     private void FullPreviousButton_Click(object sender, RoutedEventArgs e)
@@ -2383,6 +2335,36 @@ public sealed partial class MainWindow : Window
             }
         };
         flyout.Items.Add(removeItem);
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // Add to an existing custom playlist: a submenu listing every playlist.
+        var addToExisting = new MenuFlyoutSubItem
+        {
+            Text = Strings.AddToExistingPlaylist,
+            Icon = new FontIcon { Glyph = "\uE8FD" }
+        };
+        foreach (var playlist in _customPlaylists)
+        {
+            var item = new MenuFlyoutItem { Text = playlist.Name };
+            item.Click += (_, _) => AddTrackToPlaylist(playlist, track);
+            addToExisting.Items.Add(item);
+        }
+
+        if (addToExisting.Items.Count == 0)
+        {
+            addToExisting.IsEnabled = false;
+        }
+
+        flyout.Items.Add(addToExisting);
+
+        var addToNew = new MenuFlyoutItem
+        {
+            Text = Strings.AddToNewPlaylist,
+            Icon = new FontIcon { Glyph = "\uE710" }
+        };
+        addToNew.Click += (_, _) => AddTrackToNewPlaylist(track);
+        flyout.Items.Add(addToNew);
 
         flyout.Items.Add(new MenuFlyoutSeparator());
 

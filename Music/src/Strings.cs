@@ -67,6 +67,10 @@ public static class Strings
     public static string Unfavorite => T("取消收藏", "Remove from favorites");
     public static string MoreOptions => T("更多选项", "More options");
     public static string AddToPlaylist => T("添加到播放列表", "Add to playlist");
+    public static string AddToExistingPlaylist => T("添加到播放列表", "Add to playlist");
+    public static string AddToNewPlaylist => T("添加到新播放列表", "Add to new playlist");
+    public static string NewPlaylistAdded(string name) => T($"已添加到新播放列表《{name}》", $"Added to the new playlist “{name}”");
+    public static string NoPlaylistYet => T("还没有播放列表，已新建一个", "No playlists yet, a new one was created");
 
     public static string RepeatTooltip(RepeatMode mode) => mode switch
     {
@@ -181,6 +185,7 @@ public static class Strings
     public static string ClearRecentDetail => T("只会清空最近播放记录，不会删除音乐文件。", "Only the play history is cleared. Music files stay untouched.");
     public static string Clear => T("清空", "Clear");
     public static string Cancel => T("取消", "Cancel");
+    public static string Create => T("创建", "Create");
     public static string Close => T("关闭", "Close");
 
     public static string DeletePlaylistTitle(string name) => T($"删除“{name}”？", $"Delete “{name}”?");

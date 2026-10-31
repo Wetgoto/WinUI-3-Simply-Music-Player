@@ -11,6 +11,11 @@ public sealed class AppSettings
 
     /// <summary>"zh-CN" (default) or "en-US".</summary>
     public string Language { get; set; } = "zh-CN";
+
+    /// <summary>
+    /// Ask for a playlist name when a new playlist is created from a track menu.
+    /// </summary>
+    public bool PromptPlaylistName { get; set; } = true;
 }
 
 /// <summary>

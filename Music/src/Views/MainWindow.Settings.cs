@@ -33,8 +33,6 @@ public sealed partial class MainWindow
     {
         _isApplyingSettings = true;
 
-        LocalizeThemeItems();
-
         ThemeComboBox.SelectedIndex = _themePreference switch
         {
             ThemePreference.Light => 1,
@@ -42,6 +40,11 @@ public sealed partial class MainWindow
             _ => 0
         };
         LanguageComboBox.SelectedIndex = _language == AppLanguage.English ? 1 : 0;
+        PromptPlaylistNameSwitch.IsOn = _settings.PromptPlaylistName;
+
+        // After the selection is in place, so the closed combo shows the
+        // translated choice rather than the XAML default text.
+        LocalizeThemeItems();
 
         var informational = GetInformationalVersion();
         AppVersionText.Text = GetAlphaLabel(informational);
@@ -110,6 +113,14 @@ public sealed partial class MainWindow
         if (_currentTrack is null)
         {
             ResetNowPlaying();
+        }
+        else
+        {
+            // The tag-based pass above rewrites the "not playing" placeholders
+            // into these labels, so a playing track must be re-applied or the
+            // player would fall back to "Nothing playing" after a language
+            // switch while the audio keeps playing.
+            UpdateNowPlaying(_currentTrack);
         }
     }
 
@@ -328,6 +339,17 @@ public sealed partial class MainWindow
         return new SolidColorBrush(IsDarkThemeEffective
             ? Windows.UI.Color.FromArgb(36, 255, 255, 255)
             : Windows.UI.Color.FromArgb(22, 0, 0, 0));
+    }
+
+    private void PromptPlaylistNameSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_isApplyingSettings || PromptPlaylistNameSwitch is null)
+        {
+            return;
+        }
+
+        _settings.PromptPlaylistName = PromptPlaylistNameSwitch.IsOn;
+        AppSettingsStore.Save(_settings);
     }
 
     private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

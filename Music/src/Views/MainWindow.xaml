@@ -8,6 +8,16 @@
 
     <Grid x:Name="RootGrid">
         <Grid.Resources>
+            <!--
+                Text that is too long for its slot scrolls horizontally instead
+                of being cut off with an ellipsis. The ScrollViewer hides its
+                bars; motion is driven by the shared marquee helpers in code.
+            -->
+            <Style x:Key="MarqueeTextStyle" TargetType="TextBlock">
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+            </Style>
+
             <Style x:Key="QueueActionButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="28" />
                 <Setter Property="Height" Value="28" />
@@ -353,18 +363,38 @@
                         Grid.Column="1"
                         Spacing="3"
                         VerticalAlignment="Center">
-                        <TextBlock
-                            Text="{x:Bind QueueTitle, Mode=OneWay}"
-                            FontSize="14"
-                            FontWeight="SemiBold"
-                            TextTrimming="CharacterEllipsis"
-                            MaxLines="1" />
-                        <TextBlock
-                            Text="{x:Bind RecentSubtitle, Mode=OneWay}"
-                            FontSize="11"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            TextTrimming="CharacterEllipsis"
-                            MaxLines="1" />
+                        <ScrollViewer
+                            HorizontalScrollMode="Enabled"
+                            HorizontalScrollBarVisibility="Hidden"
+                            VerticalScrollMode="Disabled"
+                            VerticalScrollBarVisibility="Hidden"
+                            IsTabStop="False"
+                            PointerEntered="Marquee_PointerEntered"
+                            PointerExited="Marquee_PointerExited"
+                            SizeChanged="Marquee_SizeChanged">
+                            <TextBlock
+                                Text="{x:Bind QueueTitle, Mode=OneWay}"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                TextWrapping="NoWrap"
+                                IsTextSelectionEnabled="False" />
+                        </ScrollViewer>
+                        <ScrollViewer
+                            HorizontalScrollMode="Enabled"
+                            HorizontalScrollBarVisibility="Hidden"
+                            VerticalScrollMode="Disabled"
+                            VerticalScrollBarVisibility="Hidden"
+                            IsTabStop="False"
+                            PointerEntered="Marquee_PointerEntered"
+                            PointerExited="Marquee_PointerExited"
+                            SizeChanged="Marquee_SizeChanged">
+                            <TextBlock
+                                Text="{x:Bind RecentSubtitle, Mode=OneWay}"
+                                FontSize="11"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextWrapping="NoWrap"
+                                IsTextSelectionEnabled="False" />
+                        </ScrollViewer>
                     </StackPanel>
 
                     <StackPanel
@@ -1516,22 +1546,40 @@
                                 Grid.Column="1"
                                 Spacing="3"
                                 VerticalAlignment="Center">
-                                <TextBlock
-                                    Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
-                                    x:Name="HeroTitle"
-                                    Text="未播放"
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    TextTrimming="CharacterEllipsis"
-                                    MaxLines="1" />
-                                <TextBlock
-                                    Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
-                                    x:Name="HeroAlbum"
-                                    Text="从播放列表选择一首歌曲"
-                                    FontSize="11"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    TextTrimming="CharacterEllipsis"
-                                    MaxLines="1" />
+                                <ScrollViewer
+                                    HorizontalScrollMode="Enabled"
+                                    HorizontalScrollBarVisibility="Hidden"
+                                    VerticalScrollMode="Disabled"
+                                    VerticalScrollBarVisibility="Hidden"
+                                    IsTabStop="False"
+                                    PointerEntered="Marquee_PointerEntered"
+                                    PointerExited="Marquee_PointerExited"
+                                    SizeChanged="Marquee_SizeChanged">
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
+                                        x:Name="HeroTitle"
+                                        Text="未播放"
+                                        FontSize="15"
+                                        FontWeight="SemiBold"
+                                        TextWrapping="NoWrap" />
+                                </ScrollViewer>
+                                <ScrollViewer
+                                    HorizontalScrollMode="Enabled"
+                                    HorizontalScrollBarVisibility="Hidden"
+                                    VerticalScrollMode="Disabled"
+                                    VerticalScrollBarVisibility="Hidden"
+                                    IsTabStop="False"
+                                    PointerEntered="Marquee_PointerEntered"
+                                    PointerExited="Marquee_PointerExited"
+                                    SizeChanged="Marquee_SizeChanged">
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
+                                        x:Name="HeroAlbum"
+                                        Text="从播放列表选择一首歌曲"
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        TextWrapping="NoWrap" />
+                                </ScrollViewer>
                                 <TextBlock
                                     Tag="local:LocalizedTag(Text='准备就绪')"
                                     x:Name="NowStateText"
@@ -2590,6 +2638,43 @@
                                     </ComboBoxItem>
                                 </ComboBox>
                             </Grid>
+
+                            <Border
+                                Height="1"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                            <Grid Padding="0,14" ColumnSpacing="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    Spacing="3"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='新建播放列表时提示命名', English='Ask for a name when creating a playlist')"
+                                        Text="新建播放列表时提示命名"
+                                        FontSize="14"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='关闭后新播放列表会用默认名称创建。', English='When off, new playlists use a default name.')"
+                                        Text="关闭后新播放列表会用默认名称创建。"
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <ToggleSwitch
+                                    Tag="local:LocalizedTag(Text='新建播放列表时提示命名', English='Ask for a name when creating a playlist')"
+                                    x:Name="PromptPlaylistNameSwitch"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    OnContent="开"
+                                    OffContent="关"
+                                    Toggled="PromptPlaylistNameSwitch_Toggled"
+                                    AutomationProperties.Name="新建播放列表时提示命名" />
+                            </Grid>
                         </StackPanel>
                     </Border>
 
@@ -2744,22 +2829,40 @@
                         <StackPanel
                             Spacing="3"
                             VerticalAlignment="Center">
-                            <TextBlock
-                                Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
-                                x:Name="FullTitle"
-                                Text="未播放"
-                                FontSize="25"
-                                FontWeight="SemiBold"
-                                TextTrimming="CharacterEllipsis"
-                                MaxLines="1" />
-                            <TextBlock
-                                Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
-                                x:Name="FullAlbum"
-                                Text="从播放列表选择一首歌曲"
-                                FontSize="12"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextTrimming="CharacterEllipsis"
-                                MaxLines="1" />
+                            <ScrollViewer
+                                HorizontalScrollMode="Enabled"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollMode="Disabled"
+                                VerticalScrollBarVisibility="Hidden"
+                                IsTabStop="False"
+                                PointerEntered="Marquee_PointerEntered"
+                                PointerExited="Marquee_PointerExited"
+                                SizeChanged="Marquee_SizeChanged">
+                                <TextBlock
+                                    Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
+                                    x:Name="FullTitle"
+                                    Text="未播放"
+                                    FontSize="25"
+                                    FontWeight="SemiBold"
+                                    TextWrapping="NoWrap" />
+                            </ScrollViewer>
+                            <ScrollViewer
+                                HorizontalScrollMode="Enabled"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollMode="Disabled"
+                                VerticalScrollBarVisibility="Hidden"
+                                IsTabStop="False"
+                                PointerEntered="Marquee_PointerEntered"
+                                PointerExited="Marquee_PointerExited"
+                                SizeChanged="Marquee_SizeChanged">
+                                <TextBlock
+                                    Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
+                                    x:Name="FullAlbum"
+                                    Text="从播放列表选择一首歌曲"
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="NoWrap" />
+                            </ScrollViewer>
                         </StackPanel>
 
                         <Button

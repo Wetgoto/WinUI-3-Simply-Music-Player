@@ -272,6 +272,66 @@ public sealed partial class MainWindow
         return item;
     }
 
+    /// <summary>
+    /// Creates a playlist and puts the track in it. The settings page decides
+    /// whether the user is asked for a name; when it is off a default name is
+    /// used and no editor opens.
+    /// </summary>
+    private async Task AddTrackToNewPlaylist(Track track)
+    {
+        var prompt = _settings.PromptPlaylistName;
+        var name = Strings.NewPlaylist;
+
+        if (prompt && RootGrid.XamlRoot is not null)
+        {
+            var input = new TextBox
+            {
+                PlaceholderText = Strings.PlaylistNameHint,
+                Text = Strings.NewPlaylist
+            };
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = RootGrid.XamlRoot,
+                Title = Strings.NewPlaylist,
+                Content = input,
+                PrimaryButtonText = Strings.Create,
+                CloseButtonText = Strings.Cancel,
+                DefaultButton = ContentDialogButton.Primary
+            };
+
+            ContentDialogResult result;
+            try
+            {
+                result = await dialog.ShowAsync();
+            }
+            catch
+            {
+                return;
+            }
+
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(input.Text))
+            {
+                name = input.Text.Trim();
+            }
+        }
+
+        var playlist = AddCustomPlaylistItem(
+            Guid.NewGuid().ToString("N"),
+            name,
+            select: false,
+            beginEditing: false,
+            paths: [track.Path]);
+        PersistCustomPlaylists();
+
+        SetStatus(Strings.StatusAddedToPlaylist(playlist.Name));
+    }
+
     private void AddPlaylistButton_Click(object sender, RoutedEventArgs e)
     {
         AddCustomPlaylistItem(
