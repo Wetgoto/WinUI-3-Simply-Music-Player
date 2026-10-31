@@ -326,7 +326,7 @@
                     <Border
                         Width="3"
                         Height="40"
-                        Margin="-5,0,0,0"
+                        Margin="-9,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         CornerRadius="2"
@@ -479,7 +479,7 @@
                     <Border
                         Width="3"
                         Height="40"
-                        Margin="-5,0,0,0"
+                        Margin="-9,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         CornerRadius="2"
@@ -863,7 +863,8 @@
         <Grid
             x:Name="MainWorkspace"
             Grid.Row="1"
-            Grid.Column="1">
+            Grid.Column="1"
+            AllowDrop="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="66" />
                 <RowDefinition Height="*" />
@@ -1171,7 +1172,7 @@
                                         <Border
                                             Width="3"
                                             Height="40"
-                                            Margin="-5,0,0,0"
+                                            Margin="-9,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             CornerRadius="2"
@@ -1434,7 +1435,7 @@
                         x:Name="DropOverlay"
                         Grid.RowSpan="2"
                         Margin="6"
-                        Background="#337B61FF"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
                         BorderThickness="2"
                         CornerRadius="14"
@@ -2351,7 +2352,7 @@
                 x:Name="CustomPlaylistDropOverlay"
                 Grid.RowSpan="2"
                 Margin="6"
-                Background="#337B61FF"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
                 BorderThickness="2"
                 CornerRadius="14"
@@ -3119,12 +3120,100 @@
                     </Border>
                 </Grid>
 
-                <!-- Reserved area for the next iteration -->
-                <Border
-                    Grid.Column="1"
-                    BorderBrush="#33FFFFFF"
-                    BorderThickness="1,0,0,0"
-                    Background="Transparent" />
+                <!-- Right-hand panel of the player page: lyrics or the queue -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        Margin="24,20,24,8"
+                        HorizontalAlignment="Right">
+                        <Button
+                            Tag="local:LocalizedTag(Text='歌词', English='Lyrics')"
+                            x:Name="LyricsTabButton"
+                            Height="32"
+                            Padding="12,0"
+                            CornerRadius="8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="LyricsTabButton_Click"
+                            ToolTipService.ToolTip="歌词"
+                            AutomationProperties.Name="歌词">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8D2;" FontSize="14" />
+                                <TextBlock Text="歌词" FontSize="12" Tag="local:LocalizedTag(Text='歌词', English='Lyrics')" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            Tag="local:LocalizedTag(Text='接下来播放', English='Next up')"
+                            x:Name="QueueTabButton"
+                            Height="32"
+                            Padding="12,0"
+                            CornerRadius="8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="QueueTabButton_Click"
+                            ToolTipService.ToolTip="接下来播放"
+                            AutomationProperties.Name="接下来播放">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8FD;" FontSize="14" />
+                                <TextBlock Text="接下来播放" FontSize="12" Tag="local:LocalizedTag(Text='接下来播放', English='Next up')" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Lyrics view -->
+                    <ScrollViewer
+                        x:Name="LyricsScrollViewer"
+                        Grid.Row="1"
+                        Padding="24,0,24,24"
+                        VerticalScrollBarVisibility="Hidden"
+                        HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="LyricsList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Text="{Binding}"
+                                        FontSize="20"
+                                        FontWeight="SemiBold"
+                                        TextWrapping="Wrap"
+                                        TextAlignment="Center"
+                                        Margin="0,10"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Next-up queue view -->
+                    <Grid
+                        Grid.Row="1"
+                        x:Name="QueueTabPanel"
+                        Padding="24,0,24,24"
+                        Visibility="Collapsed">
+                        <ListView
+                            x:Name="FullQueueList"
+                            SelectionMode="Single"
+                            DoubleTapped="FullQueueList_DoubleTapped"
+                            AutomationProperties.Name="接下来播放"
+                            ItemContainerStyle="{StaticResource TrackRowContainerStyle}"
+                            ItemTemplate="{StaticResource TrackRowTemplate}" />
+                        <TextBlock
+                            x:Name="FullQueueEmptyText"
+                            Tag="local:LocalizedTag(Text='播放队列为空', English='The queue is empty')"
+                            Text="播放队列为空"
+                            FontSize="13"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Visibility="Collapsed" />
+                    </Grid>
+                </Grid>
             </Grid>
         </Grid>
 

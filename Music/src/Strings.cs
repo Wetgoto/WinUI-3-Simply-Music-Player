@@ -67,6 +67,9 @@ public static class Strings
     public static string Unfavorite => T("取消收藏", "Remove from favorites");
     public static string MoreOptions => T("更多选项", "More options");
     public static string AddToPlaylist => T("添加到播放列表", "Add to playlist");
+    public static string Lyrics => T("歌词", "Lyrics");
+    public static string NextUp => T("接下来播放", "Next up");
+    public static string NoLyrics => T("暂无歌词", "No lyrics available");
     public static string AddToExistingPlaylist => T("添加到播放列表", "Add to playlist");
     public static string AddToNewPlaylist => T("添加到新播放列表", "Add to new playlist");
     public static string NewPlaylistAdded(string name) => T($"已添加到新播放列表《{name}》", $"Added to the new playlist “{name}”");

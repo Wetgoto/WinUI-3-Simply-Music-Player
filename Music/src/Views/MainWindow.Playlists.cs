@@ -565,6 +565,19 @@ public sealed partial class MainWindow
         }
     }
 
+    private void CustomPlaylistList_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var item = FindAncestor<ListViewItem>(e.OriginalSource as DependencyObject);
+        if (item?.Content is not Track track)
+        {
+            return;
+        }
+
+        CustomPlaylistList.SelectedItem = track;
+        ShowTrackContextFlyout(track, CustomPlaylistList, e.GetPosition(CustomPlaylistList));
+        e.Handled = true;
+    }
+
     private void CustomPlaylistList_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
         if (CustomPlaylistList.SelectedItem is not Track track)

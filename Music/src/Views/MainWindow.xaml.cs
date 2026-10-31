@@ -77,6 +77,9 @@ public sealed partial class MainWindow : Window
     private Brush? _fullRepeatIdleForeground;
     private SolidColorBrush? _accentBrush;
 
+    /// <summary>Cross-fade duration when switching to or from the player page.</summary>
+    private const int PlayerPageFadeMilliseconds = 200;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -106,6 +109,7 @@ public sealed partial class MainWindow : Window
         SearchList.ContainerContentChanging += QueueList_ContainerContentChanging;
 
         InitializeFavorites();
+        InitializePlayerPagePanel();
 
         // Catch right-taps even if a ListViewItem already handled the event.
         QueueList.AddHandler(
@@ -121,6 +125,11 @@ public sealed partial class MainWindow : Window
         RecentList.AddHandler(
             UIElement.RightTappedEvent,
             new RightTappedEventHandler(RecentList_RightTapped),
+            true);
+
+        CustomPlaylistList.AddHandler(
+            UIElement.RightTappedEvent,
+            new RightTappedEventHandler(CustomPlaylistList_RightTapped),
             true);
 
         // The player bar and the full page both open the track menu on
@@ -149,6 +158,26 @@ public sealed partial class MainWindow : Window
             new DragEventHandler(Playlist_DragLeave),
             true);
         QueueDropSurface.AddHandler(
+            UIElement.DropEvent,
+            new DragEventHandler(Playlist_Drop),
+            true);
+
+        // Dropping anywhere on the default list page counts, not just over the
+        // track card, so the whole page is a drop target.
+        MainWorkspace.AllowDrop = true;
+        MainWorkspace.AddHandler(
+            UIElement.DragEnterEvent,
+            new DragEventHandler(Playlist_DragEnter),
+            true);
+        MainWorkspace.AddHandler(
+            UIElement.DragOverEvent,
+            new DragEventHandler(Playlist_DragOver),
+            true);
+        MainWorkspace.AddHandler(
+            UIElement.DragLeaveEvent,
+            new DragEventHandler(Playlist_DragLeave),
+            true);
+        MainWorkspace.AddHandler(
             UIElement.DropEvent,
             new DragEventHandler(Playlist_Drop),
             true);
@@ -1627,16 +1656,20 @@ public sealed partial class MainWindow : Window
         }
 
         _isPageTransitioning = true;
-        await FadeToBlackAsync(fadePlayerBar: true);
 
-        _isPlayerPageOpen = true;
-        PlayerBar.Visibility = Visibility.Collapsed;
-        PlayerBar.Opacity = 1;
+        // Cross-fade instead of the old black veil: the player page fades in
+        // over the workspace while the player bar fades out, 200 ms total.
+        PlayerPage.Opacity = 0;
         PlayerPage.Visibility = Visibility.Visible;
         BackButton.Visibility = Visibility.Visible;
+        _isPlayerPageOpen = true;
 
-        await Task.Delay(40);
-        await FadeFromBlackAsync();
+        await Task.WhenAll(
+            AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds),
+            AnimatePlayerBarOpacityAsync(0, PlayerPageFadeMilliseconds));
+
+        PlayerBar.Visibility = Visibility.Collapsed;
+        PlayerBar.Opacity = 1;
         _isPageTransitioning = false;
     }
 
@@ -1664,51 +1697,44 @@ public sealed partial class MainWindow : Window
         }
 
         _isPageTransitioning = true;
-        await FadeToBlackAsync();
 
-        _isPlayerPageOpen = false;
-        PlayerPage.Visibility = Visibility.Collapsed;
         PlayerBar.Visibility = Visibility.Visible;
         PlayerBar.Opacity = 0;
         BackButton.Visibility = Visibility.Collapsed;
-        NowPlayingAreaButton.Focus(FocusState.Programmatic);
 
-        await Task.Delay(40);
-        await FadeFromBlackAsync(fadePlayerBar: true);
+        await Task.WhenAll(
+            AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds),
+            AnimatePlayerBarOpacityAsync(1, PlayerPageFadeMilliseconds));
+
+        PlayerPage.Visibility = Visibility.Collapsed;
+        PlayerPage.Opacity = 1;
+        _isPlayerPageOpen = false;
+        NowPlayingAreaButton.Focus(FocusState.Programmatic);
         _isPageTransitioning = false;
     }
 
-    private async Task FadeToBlackAsync(bool fadePlayerBar = false)
+    /// <summary>Fades an element's opacity; used by the page cross-fade.</summary>
+    private static Task AnimateElementOpacityAsync(
+        UIElement element,
+        double targetOpacity,
+        int durationMilliseconds)
     {
-        PageFadeOverlay.Visibility = Visibility.Visible;
-        PageFadeOverlay.IsHitTestVisible = true;
-        if (fadePlayerBar)
+        var completion = new TaskCompletionSource<bool>();
+        var animation = new DoubleAnimation
         {
-            await Task.WhenAll(
-                AnimatePageFadeAsync(1, 150),
-                AnimatePlayerBarOpacityAsync(0, 150));
-        }
-        else
-        {
-            await AnimatePageFadeAsync(1, 150);
-        }
-    }
+            To = targetOpacity,
+            Duration = new Duration(TimeSpan.FromMilliseconds(durationMilliseconds)),
+            EnableDependentAnimation = true
+        };
 
-    private async Task FadeFromBlackAsync(bool fadePlayerBar = false)
-    {
-        if (fadePlayerBar)
-        {
-            await Task.WhenAll(
-                AnimatePageFadeAsync(0, 110),
-                AnimatePlayerBarOpacityAsync(1, 110));
-        }
-        else
-        {
-            await AnimatePageFadeAsync(0, 110);
-        }
+        Storyboard.SetTarget(animation, element);
+        Storyboard.SetTargetProperty(animation, "Opacity");
 
-        PageFadeOverlay.Visibility = Visibility.Collapsed;
-        PageFadeOverlay.IsHitTestVisible = false;
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(animation);
+        storyboard.Completed += (_, _) => completion.TrySetResult(true);
+        storyboard.Begin();
+        return completion.Task;
     }
 
     private Task AnimatePlayerBarOpacityAsync(double targetOpacity, int durationMilliseconds)
@@ -1726,27 +1752,6 @@ public sealed partial class MainWindow : Window
         storyboard.Children.Add(animation);
         storyboard.Completed += (_, _) => completion.TrySetResult(true);
         storyboard.Begin();
-        return completion.Task;
-    }
-
-    private Task AnimatePageFadeAsync(double targetOpacity, int durationMilliseconds)
-    {
-        var completion = new TaskCompletionSource<bool>();
-        var animation = new DoubleAnimation
-        {
-            To = targetOpacity,
-            Duration = TimeSpan.FromMilliseconds(durationMilliseconds),
-            EnableDependentAnimation = true
-        };
-
-        Storyboard.SetTarget(animation, PageFadeOverlay);
-        Storyboard.SetTargetProperty(animation, "Opacity");
-
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(animation);
-        storyboard.Completed += (_, _) => completion.TrySetResult(true);
-        storyboard.Begin();
-
         return completion.Task;
     }
 
@@ -2729,6 +2734,7 @@ public sealed partial class MainWindow : Window
         FullArtPlaceholder.Visibility = track.Artwork is null ? Visibility.Visible : Visibility.Collapsed;
 
         UpdateTrackFavoriteButtons(track);
+        RefreshLyrics(track);
 
         SetProgressMaximum(track.Duration.TotalSeconds);
         UpdateTimeLabels(TimeSpan.Zero, track.Duration);
@@ -2771,6 +2777,7 @@ public sealed partial class MainWindow : Window
         PlayPauseIcon.Glyph = "\uE768";
         FullPlayPauseIcon.Glyph = "\uE768";
         UpdateTrackFavoriteButtons(null);
+        RefreshLyrics(null);
         UpdateTransportUi();
         NowStateText.Text = Strings.Ready;
         _ = UpdateSystemMediaInfoAsync(null);
