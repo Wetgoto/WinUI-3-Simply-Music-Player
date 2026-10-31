@@ -212,15 +212,23 @@
                                         </VisualState>
                                         <VisualState x:Name="Selected">
                                             <Storyboard>
+                                                <!--
+                                                    The row template draws its own
+                                                    highlight for the playing track,
+                                                    so the container must not paint a
+                                                    second one on top of it. Selection
+                                                    stays visually neutral; only the
+                                                    hover states light the layer.
+                                                -->
                                                 <DoubleAnimation
                                                     Storyboard.TargetName="HoverLayer"
                                                     Storyboard.TargetProperty="Opacity"
-                                                    To="1"
+                                                    To="0"
                                                     Duration="0:0:0.08" />
                                                 <DoubleAnimation
                                                     Storyboard.TargetName="SelectionIndicator"
                                                     Storyboard.TargetProperty="Opacity"
-                                                    To="1"
+                                                    To="0"
                                                     Duration="0:0:0.08" />
                                             </Storyboard>
                                         </VisualState>
@@ -234,7 +242,7 @@
                                                 <DoubleAnimation
                                                     Storyboard.TargetName="SelectionIndicator"
                                                     Storyboard.TargetProperty="Opacity"
-                                                    To="1"
+                                                    To="0"
                                                     Duration="0:0:0.08" />
                                             </Storyboard>
                                         </VisualState>
@@ -248,7 +256,7 @@
                                                 <DoubleAnimation
                                                     Storyboard.TargetName="SelectionIndicator"
                                                     Storyboard.TargetProperty="Opacity"
-                                                    To="1"
+                                                    To="0"
                                                     Duration="0:0:0.08" />
                                             </Storyboard>
                                         </VisualState>
@@ -1070,7 +1078,7 @@
                                                                     <DoubleAnimation
                                                                         Storyboard.TargetName="SelectionIndicator"
                                                                         Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
+                                                                        To="0"
                                                                         Duration="0:0:0.08" />
                                                                 </Storyboard>
                                                             </VisualState>
@@ -1084,7 +1092,7 @@
                                                                     <DoubleAnimation
                                                                         Storyboard.TargetName="SelectionIndicator"
                                                                         Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
+                                                                        To="0"
                                                                         Duration="0:0:0.08" />
                                                                 </Storyboard>
                                                             </VisualState>
@@ -1098,7 +1106,7 @@
                                                                     <DoubleAnimation
                                                                         Storyboard.TargetName="SelectionIndicator"
                                                                         Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
+                                                                        To="0"
                                                                         Duration="0:0:0.08" />
                                                                 </Storyboard>
                                                             </VisualState>
