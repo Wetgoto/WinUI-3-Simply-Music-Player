@@ -310,6 +310,30 @@ public sealed partial class MainWindow
         return item;
     }
 
+    /// <summary>
+    /// Sizes the settings cards to the available width, capped at 820 px. The
+    /// panel is centred, so wide windows show a centred column and narrow ones
+    /// use the full width.
+    /// </summary>
+    private void SettingsPanelHost_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (SettingsPanel is null || SettingsPanelHost is null)
+        {
+            return;
+        }
+
+        // e.NewSize is the space the cards can occupy (the ScrollViewer minus
+        // its padding). Capping it at 820 keeps the column readable, and the
+        // panel's HorizontalAlignment="Center" centres the leftover space.
+        var available = e.NewSize.Width;
+        if (available <= 0)
+        {
+            return;
+        }
+
+        SettingsPanel.Width = Math.Min(available, 820);
+    }
+
     private void ApplyTheme(ThemePreference preference, bool persist)
     {
         _themePreference = preference;
