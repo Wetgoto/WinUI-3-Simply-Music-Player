@@ -141,7 +141,7 @@ public static class Strings
     public static string SystemTheme => T("跟随系统", "Use system setting");
     public static string LightTheme => T("浅色", "Light");
     public static string DarkTheme => T("深色", "Dark");
-    public static string VersionLine(string informational) => T($"版本 {informational} · WinUI 3 · .NET 10", $"Version {informational} · WinUI 3 · .NET 10");
+    public static string VersionLine(string informational) => T($"版本 {informational} · WinUI 3 · .NET 10 · Windows x64", $"Version {informational} · WinUI 3 · .NET 10 · Windows x64");
     public static string SdkLine => T("Windows App SDK 1.8 · MIT License", "Windows App SDK 1.8 · MIT License");
     public static string Copyright => T("© 2026 Wetgoto · 本地音乐播放器", "© 2026 Wetgoto · Local music player");
     public static string GitHubRepository => T("GitHub 仓库", "GitHub repository");

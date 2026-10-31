@@ -85,14 +85,14 @@
 
 1. 打开本仓库的 [Releases](../../releases) 页面。
 2. 下载最新的 `Music-Player-Release-win-x64.zip` 并解压到任意文件夹。
-3. 双击 `Music Launcher.cmd` 启动（推荐），不要直接双击 `Music.exe`。
+3. 双击 `Music.exe` 直接启动，不需要任何启动脚本，启动时也不会先解压运行时。
 
-`Music.exe` 是单文件自包含程序，内置 .NET 10 运行时和 Windows App SDK，目标电脑不需要另外安装 .NET 或 Windows App Runtime。单文件程序运行前需要把内置运行库解压到磁盘，启动器把解压位置固定到程序目录下的 `.runtime`，避免个别环境无法写入 `%TEMP%\.net\Music`。
+发布包是一个文件夹：`Music.exe` 加运行库 DLL 和 `Assets`、`en-us`、`zh-CN`、`language`、`Microsoft.UI.Xaml` 等资源文件夹，总计约 138 MB。
 
-- 第一次通过启动器启动会生成 `.runtime`（约 198 MB），可能稍慢；之后复用缓存。
-- `.runtime` 在程序退出后可删除以释放空间，下次启动会自动重建。
-- 如果 `Music.exe` 双击没有反应，请使用 `Music Launcher.cmd`。
+- 运行前请解压整个文件夹，不要只把 `Music.exe` 单独拖出来；缺少旁边的 DLL 会无法启动。
+- 程序需要 Windows App Runtime，发布包已自带所需 DLL，但目标电脑可能需要安装 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)（Windows App SDK 所需的 DirectX / VC++ 运行库在 Windows 10 1809 以上已内置）。
 - 程序未做代码签名，从网络下载后 Windows SmartScreen 可能提示一次，选择“仍要运行”即可。
+- 升级时直接覆盖旧文件夹中的同名文件即可，`config` 和 `data` 会保留。
 
 ## 从源码构建
 
@@ -124,19 +124,19 @@ dotnet build .\Music\Music.csproj -c Debug -p:Platform=x64
 dotnet restore .\Music\Music.csproj --source "$env:USERPROFILE\.nuget\packages"
 ```
 
-### 生成单文件发布版
+### 生成发布版（文件夹形式）
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\Music\build\publish-portable.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Music\build\publish-framework.ps1
 ```
 
-脚本执行单文件自包含发布，把最终的 `Music.exe` 复制到 `Music\` 目录，并保留 `config\playlist.json`。主要发布参数：
+脚本执行多文件发布，把 `Music.exe`、运行库 DLL 和 `Assets`、`language`、`zh-CN` 等资源文件夹输出到 `Music\dist\`，整个文件夹就是发布包。主要发布参数：
 
-- `PublishSingleFile=true`
+- `PublishSingleFile=false`
 - `SelfContained=true`
-- `EnableCompressionInSingleFile=true`
-- `IncludeAllContentForSelfExtract=true`
 - `EnableMsixTooling=true`
+
+> 旧的 `build\publish-portable.ps1` 仍可生成单文件 `Music.exe`，但单文件版需要在启动时解压运行时，部分环境下解压目录不可写会直接退出，因此发布包已改为文件夹形式。
 
 ## 使用方式
 
@@ -173,9 +173,11 @@ Music-Player-GitHub/
 ├─ README.md
 ├─ Music/
 │  ├─ Music.csproj
-│  ├─ Music Launcher.cmd            # 固定解压目录的启动器
+│  ├─ Music Launcher.cmd            # 可选：用同目录作为工作目录启动 Music.exe
 │  ├─ src/
 │  │  ├─ App.xaml / App.xaml.cs     # 应用入口与启动异常日志
+│  │  ├─ Strings.cs                # 运行期文案（设置、状态、菜单）
+│  │  ├─ LocalizedTag.cs           # XAML 里的双语标注
 │  │  ├─ Views/
 │  │  │  ├─ MainWindow.xaml        # 播放器界面
 │  │  │  ├─ MainWindow.xaml.cs     # 播放、队列、页面切换
@@ -186,6 +188,7 @@ Music-Player-GitHub/
 │  │  │  ├─ Track.cs               # 曲目模型
 │  │  │  ├─ SearchResult.cs        # 搜索结果行
 │  │  │  ├─ RepeatMode.cs          # 循环播放模式
+│  │  │  ├─ AppLanguage.cs         # 简体中文 / English
 │  │  │  └─ ThemePreference.cs     # 跟随系统 / 浅色 / 深色
 │  │  └─ Services/
 │  │     ├─ AppPaths.cs            # 程序/config/logs 路径解析
@@ -201,7 +204,8 @@ Music-Player-GitHub/
 │  │     └─ DwmThumbnailService.cs
 │  ├─ Assets/                      # 图标与文档截图
 │  ├─ build/
-│  │  ├─ publish-portable.ps1      # 单文件发布脚本
+│  │  ├─ publish-framework.ps1     # 文件夹形式发布（发版用）
+│  │  ├─ publish-portable.ps1      # 旧版单文件发布脚本
 │  │  └─ organize-language.ps1     # 多文件构建时的语言目录整理
 │  └─ config/
 │     └─ app.manifest              # 应用清单
@@ -223,12 +227,12 @@ Music-Player-GitHub/
 - 音频播放基于 `Windows.Media.Playback.MediaPlayer`，界面使用自定义传输栏控制播放。
 - 文件导入使用 `FileOpenPicker`；拖拽导入使用 `DragDrop` 与 `StandardDataFormats.StorageItems`。
 - 元数据和封面优先由 `EmbeddedMetadataReader` 直接解析 FLAC / MP3 / WAV 的内嵌标签和图片，再回退到 `StorageFile.Properties.GetMusicPropertiesAsync()` 和 `GetThumbnailAsync(ThumbnailMode.MusicView)`。
-- 发布版使用单文件自包含发布，把 .NET 运行时、Windows App SDK 和 WinUI 资源都打进 `Music.exe`。运行时由单文件宿主解压到临时目录，因此不能把 DLL 手工拆到 `lib`、`native` 等子目录，否则会破坏 Windows 的 DLL 和 WinUI 资源加载规则。
+- 发布版使用多文件自包含发布：`Music.exe` 与运行库 DLL、WinUI 资源放在同一文件夹，双击即可启动，不需要解压运行时；不要把这些 DLL 手工移到 `lib`、`native` 等子目录，否则会破坏 Windows 的 DLL 和 WinUI 资源加载规则。
 - 默认播放列表优先保存在程序旁边的 `config\playlist.json`；如果该位置不可写，则回退到 `%LOCALAPPDATA%\Music\playlist.json`。旧版遗留在 exe 旁边的 `playlist.json` 也会被兼容读取。
 - 自定义播放列表目录保存在 `config\playlists.json`，最近播放路径保存在 `config\recent.json`，界面设置保存在 `config\settings.json`。
 - 主题通过 `RootGrid.RequestedTheme` 在运行时切换，标题栏按钮颜色通过 `AppWindow.TitleBar` 同步更新；主题保存在 `config\settings.json`，启动时在创建窗口后立即应用。
 - 启动异常日志写在程序旁边的 `logs\startup-error.log`。
-- 单文件发布已内置全部语言资源，因此发布目录中没有 `language` 文件夹；`build\organize-language.ps1` 只用于普通多文件构建时的输出整理。
+- 发布版是文件夹形式：`Music.exe` 旁必须保留运行库 DLL 和 `Assets`、`language`、`zh-CN`、`en-us`、`Microsoft.UI.Xaml` 等文件夹；`build\organize-language.ps1` 会在 Release 构建时把多语言资源整理到 `language\`。
 
 ## 已知限制
 
@@ -243,11 +247,12 @@ Music-Player-GitHub/
 
 ## 排查
 
-如果双击 `Music.exe` 没反应，通常是 Windows 阻止单文件程序在 `%TEMP%\.net\Music` 创建解压缓存（错误代码 5），不是播放器代码崩溃。
+如果双击 `Music.exe` 没反应或启动后立即退出：
 
-- 改用 `Music Launcher.cmd` 启动，它通过 `DOTNET_BUNDLE_EXTRACT_BASE_DIR` 把解压目录指向 `Music\.runtime`。
-- 仍无法启动时，关闭所有 Music 进程，删除 `Music\.runtime` 后重试。
-- 如果系统盘空间不足，先释放空间；解压缓存约 198 MB。
+- 确认整个文件夹都已解压，`Music.exe` 旁边的 DLL 以及 `Assets`、`language`、`zh-CN`、`en-us`、`Microsoft.UI.Xaml` 等文件夹没有被移动或删除。
+- 查看程序目录下的 `logs\startup-error.log`，里面记录了启动异常和版本号。
+- 安装 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) 后重试。
+- 如果用的是旧的单文件版 `Music.exe`，请改用文件夹版发布包；单文件版在 `%TEMP%\.net` 不可写的环境会直接退出。
 
 ## 许可证
 
