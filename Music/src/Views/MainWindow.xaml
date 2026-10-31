@@ -665,12 +665,16 @@
                 Background="Transparent" />
         </Grid>
 
-        <!-- Left navigation rail -->
+        <!--
+            Left navigation rail. It spans rows 1-2 so it runs all the way to the
+            bottom edge of the window, past the player bar.
+        -->
         <Border
             x:Name="NavigationRail"
             Grid.Row="1"
+            Grid.RowSpan="2"
             Grid.Column="0"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0">
             <!--
@@ -2797,10 +2801,15 @@
             </ScrollViewer>
         </Grid>
 
-        <!-- Full-window player page -->
+        <!--
+            Full-window player page. It spans both rows and columns so it covers
+            the player bar as well, and it is declared after the rail so it is
+            the topmost layer.
+        -->
         <Grid
             x:Name="PlayerPage"
             Grid.Row="1"
+            Grid.RowSpan="2"
             Grid.ColumnSpan="2"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Opacity="0"
