@@ -667,14 +667,16 @@
 
         <!--
             Left navigation rail. It spans rows 1-2 so it runs all the way to the
-            bottom edge of the window, past the player bar.
+            bottom edge of the window, past the player bar. Its fill is a
+            translucent tint so it still shows the Mica backdrop and picks up the
+            same warm tones as the content area; a solid fill would cut the
+            backdrop off with a visibly darker block.
         -->
         <Border
             x:Name="NavigationRail"
             Grid.Row="1"
             Grid.RowSpan="2"
             Grid.Column="0"
-            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0">
             <!--

@@ -349,6 +349,11 @@ public sealed partial class MainWindow
         ApplyNativeTitleBarTheme(dark);
         ApplyCustomTitleBarTheme(dark);
 
+        if (NavigationRail is not null)
+        {
+            NavigationRail.Background = CreateSidebarBackgroundBrush();
+        }
+
         if (_selectedNavButton is not null)
         {
             _selectedNavButton.Background = CreateNavSelectionBrush();
@@ -371,6 +376,19 @@ public sealed partial class MainWindow
         _themePreference == ThemePreference.Dark ||
         (_themePreference == ThemePreference.System &&
          Application.Current.RequestedTheme == ApplicationTheme.Dark);
+
+    /// <summary>
+    /// The sidebar is a translucent tint rather than a solid fill. A solid fill
+    /// hides the Mica backdrop, which leaves the rail a flat darker block next
+    /// to the tinted content area; a semi-transparent wash keeps both surfaces
+    /// reading as one window while still separating the rail.
+    /// </summary>
+    private SolidColorBrush CreateSidebarBackgroundBrush()
+    {
+        return new SolidColorBrush(IsDarkThemeEffective
+            ? Windows.UI.Color.FromArgb(40, 0, 0, 0)
+            : Windows.UI.Color.FromArgb(18, 0, 0, 0));
+    }
 
     /// <summary>
     /// Selected sidebar rows and active page-search buttons use a translucent
