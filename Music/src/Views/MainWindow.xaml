@@ -683,6 +683,7 @@
 
         <!-- Left navigation rail -->
         <Border
+            x:Name="NavigationRail"
             Grid.Row="1"
             Grid.RowSpan="2"
             Grid.Column="0"
@@ -859,10 +860,24 @@
             </Grid>
         </Border>
 
+        <!--
+            Home surface: playlists on top, player bar underneath. It fills the
+            content area as one block so the page switch can cross-fade the
+            whole thing at once instead of fading two unrelated regions.
+        -->
+        <Grid
+            x:Name="HomeSurface"
+            Grid.Row="1"
+            Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
         <!-- Main workspace -->
         <Grid
             x:Name="MainWorkspace"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             AllowDrop="True">
             <Grid.RowDefinitions>
@@ -1471,7 +1486,7 @@
             <!-- Player control bar -->
             <Border
                 x:Name="PlayerBar"
-                Grid.Row="2"
+                Grid.Row="1"
                 Grid.Column="1"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -1786,6 +1801,7 @@
                     </Grid>
                 </Grid>
             </Border>
+        </Grid>
 
         <!-- Recently played projects -->
         <Grid
@@ -2800,6 +2816,7 @@
             Grid.Row="1"
             Grid.ColumnSpan="2"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+            Opacity="0"
             Visibility="Collapsed"
             SizeChanged="PlayerPage_SizeChanged">
             <Grid
@@ -3216,15 +3233,5 @@
                 </Grid>
             </Grid>
         </Grid>
-
-        <!-- Black transition surface between the main page and player page -->
-        <Border
-            x:Name="PageFadeOverlay"
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Background="Black"
-            Opacity="0"
-            Visibility="Collapsed"
-            IsHitTestVisible="False" />
     </Grid>
 </Window>

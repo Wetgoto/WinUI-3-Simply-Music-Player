@@ -1657,8 +1657,9 @@ public sealed partial class MainWindow : Window
 
         _isPageTransitioning = true;
 
-        // Cross-fade instead of the old black veil: the player page fades in
-        // over the workspace while the player bar fades out, 200 ms total.
+        // Cross-fade the two whole surfaces. The home page (playlists plus the
+        // player bar, which live in one container) fades out as the player page
+        // fades in over the same area, so no half-faded strip is left behind.
         PlayerPage.Opacity = 0;
         PlayerPage.Visibility = Visibility.Visible;
         BackButton.Visibility = Visibility.Visible;
@@ -1666,10 +1667,10 @@ public sealed partial class MainWindow : Window
 
         await Task.WhenAll(
             AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds),
-            AnimatePlayerBarOpacityAsync(0, PlayerPageFadeMilliseconds));
+            AnimateElementOpacityAsync(HomeSurface, 0, PlayerPageFadeMilliseconds));
 
-        PlayerBar.Visibility = Visibility.Collapsed;
-        PlayerBar.Opacity = 1;
+        HomeSurface.Visibility = Visibility.Collapsed;
+        HomeSurface.Opacity = 1;
         _isPageTransitioning = false;
     }
 
@@ -1698,13 +1699,13 @@ public sealed partial class MainWindow : Window
 
         _isPageTransitioning = true;
 
-        PlayerBar.Visibility = Visibility.Visible;
-        PlayerBar.Opacity = 0;
+        HomeSurface.Visibility = Visibility.Visible;
+        HomeSurface.Opacity = 0;
         BackButton.Visibility = Visibility.Collapsed;
 
         await Task.WhenAll(
             AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds),
-            AnimatePlayerBarOpacityAsync(1, PlayerPageFadeMilliseconds));
+            AnimateElementOpacityAsync(HomeSurface, 1, PlayerPageFadeMilliseconds));
 
         PlayerPage.Visibility = Visibility.Collapsed;
         PlayerPage.Opacity = 1;
@@ -1737,26 +1738,7 @@ public sealed partial class MainWindow : Window
         return completion.Task;
     }
 
-    private Task AnimatePlayerBarOpacityAsync(double targetOpacity, int durationMilliseconds)
-    {
-        var completion = new TaskCompletionSource<bool>();
-        var animation = new DoubleAnimation
-        {
-            To = targetOpacity,
-            Duration = new Duration(TimeSpan.FromMilliseconds(durationMilliseconds)),
-            EnableDependentAnimation = true
-        };
-        Storyboard.SetTarget(animation, PlayerBar);
-        Storyboard.SetTargetProperty(animation, "Opacity");
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(animation);
-        storyboard.Completed += (_, _) => completion.TrySetResult(true);
-        storyboard.Begin();
-        return completion.Task;
-    }
-
-    private void QueueList_ContainerContentChanging(
-        ListViewBase sender,
+    private void QueueList_ContainerContentChanging(        ListViewBase sender,
         ContainerContentChangingEventArgs args)
     {
         if (args.InRecycleQueue || args.ItemContainer is not ListViewItem item)
