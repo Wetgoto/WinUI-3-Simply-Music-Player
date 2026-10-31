@@ -1657,20 +1657,20 @@ public sealed partial class MainWindow : Window
 
         _isPageTransitioning = true;
 
-        // Cross-fade the two whole surfaces. The home page (playlists plus the
-        // player bar, which live in one container) fades out as the player page
-        // fades in over the same area, so no half-faded strip is left behind.
+        // The home surface is hidden outright rather than faded out. Fading it
+        // leaves it drawn underneath the player page, so its player bar and
+        // empty-state text show through and the sidebar looks translucent.
+        HomeSurface.Visibility = Visibility.Collapsed;
+        HomeSurface.Opacity = 1;
+
         PlayerPage.Opacity = 0;
         PlayerPage.Visibility = Visibility.Visible;
         BackButton.Visibility = Visibility.Visible;
         _isPlayerPageOpen = true;
 
-        await Task.WhenAll(
-            AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(HomeSurface, 0, PlayerPageFadeMilliseconds));
+        await AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds);
 
-        HomeSurface.Visibility = Visibility.Collapsed;
-        HomeSurface.Opacity = 1;
+        PlayerPage.Opacity = 1;
         _isPageTransitioning = false;
     }
 
@@ -1699,22 +1699,28 @@ public sealed partial class MainWindow : Window
 
         _isPageTransitioning = true;
 
-        HomeSurface.Visibility = Visibility.Visible;
-        HomeSurface.Opacity = 0;
         BackButton.Visibility = Visibility.Collapsed;
 
-        await Task.WhenAll(
-            AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(HomeSurface, 1, PlayerPageFadeMilliseconds));
+        await AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds);
 
         PlayerPage.Visibility = Visibility.Collapsed;
         PlayerPage.Opacity = 1;
+
+        // Bring the home surface back only once the player page is gone, so the
+        // player bar never shows through the outgoing page.
+        HomeSurface.Visibility = Visibility.Visible;
+        HomeSurface.Opacity = 1;
+
         _isPlayerPageOpen = false;
         NowPlayingAreaButton.Focus(FocusState.Programmatic);
         _isPageTransitioning = false;
     }
 
-    /// <summary>Fades an element's opacity; used by the page cross-fade.</summary>
+    /// <summary>
+    /// Fades an element's opacity for the page cross-fade. The storyboard is
+    /// stopped before the task completes so the caller can set the element's
+    /// Visibility and Opacity without the animation still holding the property.
+    /// </summary>
     private static Task AnimateElementOpacityAsync(
         UIElement element,
         double targetOpacity,
@@ -1733,12 +1739,21 @@ public sealed partial class MainWindow : Window
 
         var storyboard = new Storyboard();
         storyboard.Children.Add(animation);
-        storyboard.Completed += (_, _) => completion.TrySetResult(true);
+
+        // Stop releases the animated value; without it a later Opacity or
+        // Visibility change can be masked by the retained animation.
+        storyboard.Completed += (_, _) =>
+        {
+            storyboard.Stop();
+            completion.TrySetResult(true);
+        };
+
         storyboard.Begin();
         return completion.Task;
     }
 
-    private void QueueList_ContainerContentChanging(        ListViewBase sender,
+    private void QueueList_ContainerContentChanging(
+        ListViewBase sender,
         ContainerContentChangingEventArgs args)
     {
         if (args.InRecycleQueue || args.ItemContainer is not ListViewItem item)

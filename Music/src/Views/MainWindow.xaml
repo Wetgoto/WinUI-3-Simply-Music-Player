@@ -2611,12 +2611,17 @@
             x:Name="PlayerPage"
             Grid.Row="1"
             Grid.ColumnSpan="2"
-            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
             Opacity="0"
             Visibility="Collapsed"
             SizeChanged="PlayerPage_SizeChanged">
+            <!--
+                The page spans the full window so its background covers the player
+                bar, but its content starts after the sidebar, which floats on top.
+                260 is the sidebar column width; 24 keeps the usual page gutter.
+            -->
             <Grid
-                Padding="0"
+                Padding="284,0,24,0"
                 ColumnSpacing="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="FullLeftColumn" Width="0.78*" />
@@ -3037,7 +3042,6 @@
             x:Name="NavigationRail"
             Grid.Row="1"
             Grid.Column="0"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0">
             <!--
