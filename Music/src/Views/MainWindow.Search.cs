@@ -217,7 +217,7 @@ public sealed partial class MainWindow
 
         foreach (var track in _queue)
         {
-            AddSource(track.Path, "默认列表");
+            AddSource(track.Path, Strings.DefaultList);
             _searchTrackCache[track.Path] = track;
         }
 
@@ -226,7 +226,7 @@ public sealed partial class MainWindow
             _searchTrackCache[track.Path] = track;
             if (!sources.ContainsKey(track.Path))
             {
-                AddSource(track.Path, "最近的项目");
+                AddSource(track.Path, Strings.RecentProjects);
             }
         }
 
@@ -294,13 +294,13 @@ public sealed partial class MainWindow
 
         SearchList.Visibility = hasResults ? Visibility.Visible : Visibility.Collapsed;
         SearchNoResultsPanel.Visibility = hasResults ? Visibility.Collapsed : Visibility.Visible;
-        SearchNoResultsTitle.Text = _searchIndexBuilding ? "正在搜索…" : "没有找到匹配的曲目";
+        SearchNoResultsTitle.Text = _searchIndexBuilding ? Strings.Searching : Strings.NoMatches;
         SearchNoResultsDetail.Text = _searchIndexBuilding
-            ? "正在读取所有播放列表中的曲目信息。"
-            : "换一个关键词，或检查播放列表里是否包含这首歌。";
-        SearchCountText.Text = _searchIndexBuilding
-            ? $"{_searchResults.Count} 个结果 · 正在索引所有播放列表…"
-            : $"{_searchResults.Count} 个结果 · 搜索范围：所有播放列表";
+            ? Strings.SearchingDetail
+            : Strings.SearchNoResultsDetail;
+        SearchScopeText.Text = _searchIndexBuilding
+            ? Strings.SearchIndexing(_searchResults.Count)
+            : Strings.SearchResultCount(_searchResults.Count);
         SearchClearButton.IsEnabled = SidebarSearchBox.Text.Length > 0;
     }
 
@@ -439,7 +439,7 @@ public sealed partial class MainWindow
 
         var playItem = new MenuFlyoutItem
         {
-            Text = "播放",
+            Text = Strings.Play,
             Icon = new FontIcon { Glyph = "\uE768" }
         };
         playItem.Click += async (_, _) => await PlaySearchResultAsync(track);
@@ -450,7 +450,7 @@ public sealed partial class MainWindow
         {
             var addToQueueItem = new MenuFlyoutItem
             {
-                Text = "添加到默认列表",
+                Text = Strings.AddToDefaultList,
                 Icon = new FontIcon { Glyph = "\uE710" }
             };
             addToQueueItem.Click += (_, _) => AddSearchResultToQueue(track);
@@ -461,7 +461,7 @@ public sealed partial class MainWindow
         {
             var addToPlaylist = new MenuFlyoutSubItem
             {
-                Text = "添加到播放列表",
+                Text = Strings.AddToPlaylist,
                 Icon = new FontIcon { Glyph = "\uE8FD" }
             };
 
@@ -479,7 +479,7 @@ public sealed partial class MainWindow
 
         var detailsItem = new MenuFlyoutItem
         {
-            Text = "查看详细信息",
+            Text = Strings.ViewDetails,
             Icon = new FontIcon { Glyph = "\uE946" }
         };
         detailsItem.Click += async (_, _) => await ShowTrackDetailsAsync(track);
@@ -493,7 +493,7 @@ public sealed partial class MainWindow
         if (_queue.Any(candidate =>
                 string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase)))
         {
-            SetStatus("这首歌已经在默认列表里");
+            SetStatus(Strings.AlreadyInDefaultList);
             return;
         }
 
@@ -501,6 +501,6 @@ public sealed partial class MainWindow
         _knownPaths.Add(track.Path);
         RefreshQueueUi();
         PersistPlaylist();
-        SetStatus($"已添加到默认列表 · {track.Title}");
+        SetStatus(Strings.AddedToDefaultList(track.Title));
     }
 }

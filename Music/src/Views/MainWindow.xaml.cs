@@ -186,7 +186,7 @@ public sealed partial class MainWindow : Window
         _repeatIdleForeground = RepeatIcon.Foreground;
         _fullRepeatIdleForeground = FullRepeatIcon.Foreground;
         UpdateRepeatUi();
-        SetStatus("正在准备播放列表…");
+        SetStatus(Strings.Initializing);
     }
 
     private bool IsPlaying => _player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
@@ -324,7 +324,7 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            SetStatus($"初始化播放列表失败：{exception.Message}");
+            SetStatus(Strings.StatusInitFailed(exception.Message));
         }
     }
 
@@ -343,13 +343,13 @@ public sealed partial class MainWindow : Window
         if (paths.Count == 0)
         {
             _playlistReady = true;
-            SetStatus("就绪 · 导入或拖入音乐");
+            SetStatus(Strings.StatusReadyToImport);
             return;
         }
 
         _isImporting = true;
         SetImportingUi(true);
-        SetStatus("正在恢复上次的播放列表…");
+        SetStatus(Strings.StatusRestoring);
 
         var missingTracks = new List<Track>();
 
@@ -412,12 +412,12 @@ public sealed partial class MainWindow : Window
             }
 
             SetStatus(missingTracks.Count == 0
-                ? $"已恢复上次的播放列表 · {_queue.Count} 首"
-                : $"已恢复 {_queue.Count} 首 · {missingTracks.Count} 个文件缺失");
+                ? Strings.StatusRestored(_queue.Count)
+                : Strings.StatusRestoredWithMissing(_queue.Count, missingTracks.Count));
         }
         else
         {
-            SetStatus("就绪 · 导入或拖入音乐");
+            SetStatus(Strings.StatusReadyToImport);
         }
 
         if (missingTracks.Count > 0)
@@ -458,8 +458,8 @@ public sealed partial class MainWindow : Window
         content.Children.Add(new TextBlock
         {
             Text = missingTracks.Count == 1
-                ? "这个文件已经不在原来的位置："
-                : $"有 {missingTracks.Count} 个文件已经不在原来的位置：",
+                ? Strings.MissingFilesSingle
+                : Strings.MissingFilesMany(missingTracks.Count),
             TextWrapping = TextWrapping.Wrap
         });
 
@@ -483,7 +483,7 @@ public sealed partial class MainWindow : Window
         {
             fileList.Children.Add(new TextBlock
             {
-                Text = $"……还有 {missingTracks.Count - 8} 个文件",
+                Text = Strings.MissingFilesMore(missingTracks.Count - 8),
                 FontSize = 11,
                 Opacity = 0.7
             });
@@ -498,17 +498,17 @@ public sealed partial class MainWindow : Window
 
         content.Children.Add(new TextBlock
         {
-            Text = "是否要从播放列表中移除这些条目？",
+            Text = Strings.MissingFilesRemove,
             TextWrapping = TextWrapping.Wrap
         });
 
         var dialog = new ContentDialog
         {
             XamlRoot = RootGrid.XamlRoot,
-            Title = "找不到音乐文件",
+            Title = Strings.MissingFilesTitle,
             Content = content,
-            PrimaryButtonText = "从列表移除",
-            CloseButtonText = "保留",
+            PrimaryButtonText = Strings.RemoveFromList,
+            CloseButtonText = Strings.Keep,
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -561,8 +561,8 @@ public sealed partial class MainWindow : Window
 
         PersistPlaylist();
         SetStatus(removed > 0
-            ? $"已从播放列表移除 {removed} 个缺失条目"
-            : "没有可移除的缺失条目");
+            ? Strings.StatusRemovedMissing(removed)
+            : Strings.StatusNoMissingToRemove);
     }
 
     private Task EnsureWindowLoadedAsync()
@@ -749,10 +749,8 @@ public sealed partial class MainWindow : Window
             : Visibility.Collapsed;
         RecentClearButton.IsEnabled = _recentTracks.Count > 0;
         RecentCountText.Text = searching
-            ? $"{_visibleRecentTracks.Count} 个匹配"
-            : _recentTracks.Count == 0
-                ? "0 个项目"
-                : $"{_recentTracks.Count} 个项目";
+            ? Strings.MatchCount(_visibleRecentTracks.Count)
+            : Strings.ItemCount(_recentTracks.Count);
 
         static bool Contains(string? value, string query) =>
             !string.IsNullOrWhiteSpace(value) &&
@@ -785,9 +783,9 @@ public sealed partial class MainWindow : Window
     private void RecentSortButton_Click(object sender, RoutedEventArgs e)
     {
         var flyout = new MenuFlyout();
-        var byRecent = new MenuFlyoutItem { Text = "按最近播放排序" };
-        var byName = new MenuFlyoutItem { Text = "按名称排序" };
-        var byDuration = new MenuFlyoutItem { Text = "按时长排序" };
+        var byRecent = new MenuFlyoutItem { Text = Strings.SortByRecent };
+        var byName = new MenuFlyoutItem { Text = Strings.SortByName };
+        var byDuration = new MenuFlyoutItem { Text = Strings.SortByDuration };
 
         byRecent.Click += (_, _) => SetRecentSortMode(RecentSortMode.RecentlyPlayed);
         byName.Click += (_, _) => SetRecentSortMode(RecentSortMode.Name);
@@ -815,10 +813,10 @@ public sealed partial class MainWindow : Window
         var dialog = new ContentDialog
         {
             XamlRoot = RootGrid.XamlRoot,
-            Title = "清空最近的项目？",
-            Content = "只会清空最近播放记录，不会删除音乐文件。",
-            PrimaryButtonText = "清空",
-            CloseButtonText = "取消",
+            Title = Strings.ClearRecentTitle,
+            Content = Strings.ClearRecentDetail,
+            PrimaryButtonText = Strings.Clear,
+            CloseButtonText = Strings.Cancel,
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -891,7 +889,7 @@ public sealed partial class MainWindow : Window
             RecentPage.Visibility = Visibility.Collapsed;
             CustomPlaylistPage.Visibility = Visibility.Collapsed;
             SettingsPage.Visibility = Visibility.Collapsed;
-            DefaultListTitleText.Text = "默认列表";
+            DefaultListTitleText.Text = Strings.DefaultList;
             return;
         }
 
@@ -989,12 +987,8 @@ public sealed partial class MainWindow : Window
 
         var missingCount = _queue.Count(track => track.IsMissing);
         QueueCountText.Text = searching
-            ? $"{_visibleQueue.Count} 个匹配"
-            : _queue.Count == 0
-                ? "0 首曲目"
-                : missingCount == 0
-                    ? $"{_queue.Count} 首曲目"
-                    : $"{_queue.Count} 首曲目 · {missingCount} 个缺失";
+            ? Strings.MatchCount(_visibleQueue.Count)
+            : Strings.TrackCount(_queue.Count, missingCount);
 
         static bool Contains(string? value, string query) =>
             !string.IsNullOrWhiteSpace(value) &&
@@ -1004,9 +998,9 @@ public sealed partial class MainWindow : Window
     private void SortButton_Click(object sender, RoutedEventArgs e)
     {
         var flyout = new MenuFlyout();
-        var byName = new MenuFlyoutItem { Text = "按名称排序" };
-        var byDuration = new MenuFlyoutItem { Text = "按时长排序" };
-        var byAdded = new MenuFlyoutItem { Text = "按添加日期排序" };
+        var byName = new MenuFlyoutItem { Text = Strings.SortByName };
+        var byDuration = new MenuFlyoutItem { Text = Strings.SortByDuration };
+        var byAdded = new MenuFlyoutItem { Text = Strings.SortByAdded };
 
         byName.Click += (_, _) => SortQueue(QueueSortMode.Name);
         byDuration.Click += (_, _) => SortQueue(QueueSortMode.Duration);
@@ -1048,9 +1042,9 @@ public sealed partial class MainWindow : Window
         PersistPlaylist();
         SetStatus(mode switch
         {
-            QueueSortMode.Name => "已按名称排序",
-            QueueSortMode.Duration => "已按时长排序",
-            _ => "已按添加日期排序"
+            QueueSortMode.Name => Strings.SortedByName,
+            QueueSortMode.Duration => Strings.SortedByDuration,
+            _ => Strings.SortedByAdded
         });
     }
 
@@ -1115,7 +1109,7 @@ public sealed partial class MainWindow : Window
         }
 
         e.AcceptedOperation = DataPackageOperation.Copy;
-        e.DragUIOverride.Caption = "添加到播放队列";
+        e.DragUIOverride.Caption = Strings.AddToQueueCaption;
         e.DragUIOverride.IsCaptionVisible = true;
         e.DragUIOverride.IsGlyphVisible = true;
         DropOverlay.Visibility = Visibility.Visible;
@@ -1138,7 +1132,7 @@ public sealed partial class MainWindow : Window
 
         if (_isImporting)
         {
-            SetStatus("正在读取音乐，请稍候再拖入");
+            SetStatus(Strings.StatusReadingFiles);
             return;
         }
 
@@ -1149,7 +1143,7 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            SetStatus($"无法读取拖入的文件：{exception.Message}");
+            SetStatus(Strings.StatusDropReadFailed(exception.Message));
             return;
         }
 
@@ -1160,7 +1154,7 @@ public sealed partial class MainWindow : Window
 
         if (files.Count == 0)
         {
-            SetStatus("拖入的内容中没有可导入的音频文件");
+            SetStatus(Strings.StatusNoAudioDropped);
             return;
         }
 
@@ -1194,7 +1188,7 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            SetStatus($"无法打开文件选择器：{exception.Message}");
+            SetStatus(Strings.StatusPickerFailed(exception.Message));
             return;
         }
 
@@ -1229,7 +1223,7 @@ public sealed partial class MainWindow : Window
 
         if (candidates.Count == 0)
         {
-            SetStatus(skipped > 0 ? "所选曲目已在队列中" : "没有可导入的音频文件");
+            SetStatus(skipped > 0 ? Strings.StatusAllAlreadyInQueue : Strings.StatusNoAudioSelected);
             return;
         }
 
@@ -1244,7 +1238,7 @@ public sealed partial class MainWindow : Window
             for (var index = 0; index < candidates.Count; index++)
             {
                 var file = candidates[index];
-                SetStatus($"正在读取 {index + 1}/{candidates.Count} · {file.DisplayName}");
+                SetStatus(Strings.StatusReadingTrack(index + 1, candidates.Count, file.DisplayName));
 
                 try
                 {
@@ -1287,16 +1281,15 @@ public sealed partial class MainWindow : Window
                 LoadTrack(firstPlayable!, autoPlay: autoPlayFirst);
             }
 
-            var skippedText = skipped + failed > 0 ? $" · 跳过 {skipped + failed} 首" : string.Empty;
             SetStatus(willLoad && autoPlayFirst
-                ? $"正在载入 · {firstPlayable!.Title}{skippedText}"
-                : $"已导入 {added} 首音乐{skippedText}");
+                ? Strings.StatusLoading(firstPlayable!.Title)
+                : Strings.StatusImported(added, skipped + failed));
         }
         else
         {
             SetStatus(failed > 0
-                ? "导入失败，文件可能已移动或格式不受支持"
-                : "没有新增曲目");
+                ? Strings.StatusImportFailed
+                : Strings.StatusNothingAdded);
         }
     }
 
@@ -1319,7 +1312,7 @@ public sealed partial class MainWindow : Window
         {
             if (!File.Exists(track.Path))
             {
-                SetStatus($"文件缺失 · {track.Title}");
+                SetStatus(Strings.StatusMissingFile(track.Title));
                 return;
             }
 
@@ -1333,7 +1326,7 @@ public sealed partial class MainWindow : Window
             track.MarkMissing();
             RefreshQueueUi();
             PersistPlaylist();
-            SetStatus($"文件缺失 · {track.Title}");
+            SetStatus(Strings.StatusMissingFile(track.Title));
             return;
         }
 
@@ -1343,7 +1336,7 @@ public sealed partial class MainWindow : Window
             {
                 RestartIfAtEnd();
                 _player.Play();
-                SetStatus($"正在播放 · {track.Title}");
+                SetStatus(Strings.StatusNowPlaying(track.Title));
             }
 
             return;
@@ -1384,17 +1377,17 @@ public sealed partial class MainWindow : Window
                 previousFallback?.Dispose();
             }
 
-            SetStatus($"无法载入《{track.Title}》：{exception.Message}");
+            SetStatus(Strings.StatusLoadFailed(track.Title, exception.Message));
             ResetNowPlaying();
             return;
         }
 
         UpdateTransportUi();
-        NowStateText.Text = "正在载入";
+        NowStateText.Text = LoadingState;
 
         if (autoPlay)
         {
-            SetStatus($"正在载入 · {track.Title}");
+            SetStatus(Strings.StatusLoading(track.Title));
         }
     }
 
@@ -1461,7 +1454,7 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                SetStatus(_queue.Count == 0 ? "队列为空，先导入音乐" : "队列中没有可播放的曲目");
+                SetStatus(_queue.Count == 0 ? Strings.StatusQueueEmpty : Strings.StatusNoPlayable);
             }
 
             return;
@@ -1477,7 +1470,7 @@ public sealed partial class MainWindow : Window
         if (state is MediaPlaybackState.Playing or MediaPlaybackState.Buffering)
         {
             _player.Pause();
-            SetStatus($"已暂停 · {_currentTrack.Title}");
+            SetStatus(Strings.StatusPausedWith(_currentTrack.Title));
             return;
         }
 
@@ -1747,7 +1740,7 @@ public sealed partial class MainWindow : Window
         }
         catch
         {
-            SetStatus("收藏状态暂时无法保存");
+            SetStatus(Strings.StatusFavoriteSaveFailed);
         }
     }
 
@@ -1770,7 +1763,7 @@ public sealed partial class MainWindow : Window
 
         var playItem = new MenuFlyoutItem
         {
-            Text = "播放",
+            Text = Strings.Play,
             Icon = new FontIcon { Glyph = "\uE768" }
         };
         playItem.Click += async (_, _) => await PlayTrackFromUiAsync(track);
@@ -1781,7 +1774,7 @@ public sealed partial class MainWindow : Window
         {
             var removeItem = new MenuFlyoutItem
             {
-                Text = "从默认列表移除",
+                Text = Strings.RemoveFromDefaultList,
                 Icon = new FontIcon { Glyph = "\uE74D" }
             };
             removeItem.Click += (_, _) => RemoveTrack(track);
@@ -1791,7 +1784,7 @@ public sealed partial class MainWindow : Window
         {
             var addItem = new MenuFlyoutItem
             {
-                Text = "添加到默认列表",
+                Text = Strings.AddToDefaultList,
                 Icon = new FontIcon { Glyph = "\uE710" }
             };
             addItem.Click += (_, _) => AddSearchResultToQueue(track);
@@ -1800,7 +1793,7 @@ public sealed partial class MainWindow : Window
 
         var detailsItem = new MenuFlyoutItem
         {
-            Text = "查看详细信息",
+            Text = Strings.ViewDetails,
             Icon = new FontIcon { Glyph = "\uE946" }
         };
         detailsItem.Click += async (_, _) => await ShowTrackDetailsAsync(track);
@@ -1831,14 +1824,14 @@ public sealed partial class MainWindow : Window
     }    private void UpdateFavoriteIcon()
     {
         FavoriteIcon.Glyph = _isFavorite ? "\uE735" : "\uE734";
-        var label = _isFavorite ? "取消收藏" : "收藏";
+        var label = _isFavorite ? Strings.Unfavorite : Strings.Favorite;
         ToolTipService.SetToolTip(FavoriteButton, label);
         AutomationProperties.SetName(FavoriteButton, label);
     }
 
     private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
-        ShowComingSoonFlyout((FrameworkElement)sender, "更多选项");
+        ShowComingSoonFlyout((FrameworkElement)sender, Strings.MoreOptions);
     }
 
     private void FullPreviousButton_Click(object sender, RoutedEventArgs e)
@@ -1871,12 +1864,7 @@ public sealed partial class MainWindow : Window
         };
 
         UpdateRepeatUi();
-        SetStatus(_repeatMode switch
-        {
-            RepeatMode.All => "循环播放：列表循环",
-            RepeatMode.One => "循环播放：单曲循环",
-            _ => "循环播放：关闭"
-        });
+        SetStatus(Strings.RepeatState(_repeatMode));
     }
 
     private void UpdateRepeatUi()
@@ -1889,21 +1877,11 @@ public sealed partial class MainWindow : Window
         RepeatIcon.Foreground = accent ?? _repeatIdleForeground;
         FullRepeatIcon.Foreground = accent ?? _fullRepeatIdleForeground;
 
-        var label = _repeatMode switch
-        {
-            RepeatMode.All => "循环播放：列表循环",
-            RepeatMode.One => "循环播放：单曲循环",
-            _ => "循环播放：关闭"
-        };
-        var hint = _repeatMode switch
-        {
-            RepeatMode.None => "点击开启列表循环",
-            RepeatMode.All => "点击切换为单曲循环",
-            _ => "点击关闭循环播放"
-        };
+        var label = Strings.RepeatState(_repeatMode);
+        var tooltip = Strings.RepeatTooltip(_repeatMode);
 
-        ToolTipService.SetToolTip(RepeatButton, $"{label} · {hint}");
-        ToolTipService.SetToolTip(FullRepeatButton, $"{label} · {hint}");
+        ToolTipService.SetToolTip(RepeatButton, tooltip);
+        ToolTipService.SetToolTip(FullRepeatButton, tooltip);
         AutomationProperties.SetName(RepeatButton, label);
         AutomationProperties.SetName(FullRepeatButton, label);
     }
@@ -1950,7 +1928,7 @@ public sealed partial class MainWindow : Window
         if (previous is null)
         {
             _player.PlaybackSession.Position = TimeSpan.Zero;
-            SetStatus("已经是队列第一首");
+            SetStatus(Strings.StatusFirstInQueue);
             return;
         }
 
@@ -1975,7 +1953,7 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                SetStatus("队列中没有可播放的曲目");
+                SetStatus(Strings.StatusNoPlayable);
             }
 
             return;
@@ -1994,7 +1972,7 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            SetStatus("已经是队列最后一首");
+            SetStatus(Strings.StatusLastInQueue);
         }
     }
 
@@ -2085,7 +2063,7 @@ public sealed partial class MainWindow : Window
 
         var playItem = new MenuFlyoutItem
         {
-            Text = "播放",
+            Text = Strings.Play,
             Icon = new FontIcon { Glyph = "\uE768" }
         };
         playItem.Click += async (_, _) => await PlayTrackFromUiAsync(track);
@@ -2093,7 +2071,7 @@ public sealed partial class MainWindow : Window
 
         var removeItem = new MenuFlyoutItem
         {
-            Text = "移除",
+            Text = Strings.Remove,
             Icon = new FontIcon { Glyph = "\uE74D" }
         };
         removeItem.Click += (_, _) => RemoveTrack(track);
@@ -2103,7 +2081,7 @@ public sealed partial class MainWindow : Window
 
         var detailsItem = new MenuFlyoutItem
         {
-            Text = "查看详细信息",
+            Text = Strings.ViewDetails,
             Icon = new FontIcon { Glyph = "\uE946" }
         };
         detailsItem.Click += async (_, _) => await ShowTrackDetailsAsync(track);
@@ -2193,7 +2171,7 @@ public sealed partial class MainWindow : Window
 
         RefreshQueueUi();
         PersistPlaylist();
-        SetStatus($"已移除《{track.Title}》");
+        SetStatus(Strings.StatusRemoved(track.Title));
     }
 
     private async Task ShowTrackDetailsAsync(Track track)
@@ -2215,15 +2193,15 @@ public sealed partial class MainWindow : Window
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(104) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        AddDetailRow(grid, "文件格式", FormatFileType(track.FileType));
-        AddDetailRow(grid, "比特率", FormatBitrate(track, file));
-        AddDetailRow(grid, "文件位置", track.Path);
-        AddDetailRow(grid, "文件大小", file is null ? "文件不存在" : FormatFileSize(file.Length));
-        AddDetailRow(grid, "专辑", string.IsNullOrWhiteSpace(track.Album) ? "未知" : track.Album);
-        AddDetailRow(grid, "专辑艺术家", string.IsNullOrWhiteSpace(track.AlbumArtist) ? "未知" : track.AlbumArtist);
-        AddDetailRow(grid, "标题", track.Title);
-        AddDetailRow(grid, "时长", track.Duration > TimeSpan.Zero ? track.DurationText : "未知");
-        AddDetailRow(grid, "专辑封面", BuildCover(track));
+        AddDetailRow(grid, Strings.FileFormat, FormatFileType(track.FileType));
+        AddDetailRow(grid, Strings.Bitrate, FormatBitrate(track, file));
+        AddDetailRow(grid, Strings.FileLocation, track.Path);
+        AddDetailRow(grid, Strings.FileSize, file is null ? Strings.FileNotFound : FormatFileSize(file.Length));
+        AddDetailRow(grid, Strings.Album, string.IsNullOrWhiteSpace(track.Album) ? Strings.Unknown : track.Album);
+        AddDetailRow(grid, Strings.AlbumArtist, string.IsNullOrWhiteSpace(track.AlbumArtist) ? Strings.Unknown : track.AlbumArtist);
+        AddDetailRow(grid, Strings.Title, track.Title);
+        AddDetailRow(grid, Strings.Duration, track.Duration > TimeSpan.Zero ? track.DurationText : Strings.Unknown);
+        AddDetailRow(grid, Strings.AlbumCover, BuildCover(track));
 
         var scrollViewer = new ScrollViewer
         {
@@ -2236,9 +2214,9 @@ public sealed partial class MainWindow : Window
         var dialog = new ContentDialog
         {
             XamlRoot = RootGrid.XamlRoot,
-            Title = "详细信息",
+            Title = Strings.Details,
             Content = scrollViewer,
-            CloseButtonText = "关闭",
+            CloseButtonText = Strings.Close,
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -2281,7 +2259,7 @@ public sealed partial class MainWindow : Window
         {
             valueElement = new TextBlock
             {
-                Text = value?.ToString() ?? "未知",
+                Text = value?.ToString() ?? Strings.Unknown,
                 FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
                 LineHeight = 20,
@@ -2315,7 +2293,7 @@ public sealed partial class MainWindow : Window
             });
             placeholder.Children.Add(new TextBlock
             {
-                Text = "无封面",
+                Text = Strings.NoCover,
                 FontSize = 12,
                 Opacity = 0.6,
                 HorizontalAlignment = HorizontalAlignment.Center
@@ -2360,7 +2338,7 @@ public sealed partial class MainWindow : Window
     private static string FormatFileType(string fileType)
     {
         var type = fileType.TrimStart('.');
-        return string.IsNullOrWhiteSpace(type) ? "未知" : type.ToUpperInvariant();
+        return string.IsNullOrWhiteSpace(type) ? Strings.Unknown : type.ToUpperInvariant();
     }
 
     private static string FormatBitrate(Track track, FileInfo? file)
@@ -2376,7 +2354,7 @@ public sealed partial class MainWindow : Window
 
         return bitrate > 0
             ? $"{Math.Round(bitrate / 1000d):0} kbps"
-            : "未知";
+            : Strings.Unknown;
     }
 
     private static string FormatFileSize(long bytes)
@@ -2426,17 +2404,13 @@ public sealed partial class MainWindow : Window
         ResetNowPlaying();
         RefreshQueueUi();
         PersistPlaylist();
-        SetStatus($"已清空队列 · {count} 首曲目");
+        SetStatus(Strings.StatusQueueCleared(count));
     }
 
     private void RefreshQueueUi()
     {
         var missingCount = _queue.Count(track => track.IsMissing);
-        QueueCountText.Text = _queue.Count == 0
-            ? "0 首曲目"
-            : missingCount == 0
-                ? $"{_queue.Count} 首曲目"
-                : $"{_queue.Count} 首曲目 · {missingCount} 个缺失";
+        QueueCountText.Text = Strings.TrackCount(_queue.Count, missingCount);
         QueueList.Visibility = _queue.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyQueuePanel.Visibility = _queue.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
         ClearButton.IsEnabled = _queue.Count > 0;
@@ -2477,11 +2451,11 @@ public sealed partial class MainWindow : Window
     {
         _currentTrack = null;
         QueueList.SelectedItem = null;
-        NowStateText.Text = "准备就绪";
-        HeroTitle.Text = "未播放";
-        HeroAlbum.Text = "从播放列表选择一首歌曲";
-        FullTitle.Text = "未播放";
-        FullAlbum.Text = "从播放列表选择一首歌曲";
+        NowStateText.Text = Strings.Ready;
+        HeroTitle.Text = Strings.NotPlaying;
+        HeroAlbum.Text = Strings.PickSongHint;
+        FullTitle.Text = Strings.NotPlaying;
+        FullAlbum.Text = Strings.PickSongHint;
         HeroArt.Source = null;
         HeroArt.Visibility = Visibility.Collapsed;
         HeroArtPlaceholder.Visibility = Visibility.Visible;
@@ -2509,7 +2483,7 @@ public sealed partial class MainWindow : Window
         _isFavorite = false;
         UpdateFavoriteIcon();
         UpdateTransportUi();
-        NowStateText.Text = "准备就绪";
+        NowStateText.Text = Strings.Ready;
         _ = UpdateSystemMediaInfoAsync(null);
         _dwmThumbnail?.Clear();
 
@@ -2531,8 +2505,8 @@ public sealed partial class MainWindow : Window
         FullProgressSlider.IsEnabled = canSeek;
         PlayPauseIcon.Glyph = playing ? "\uE769" : "\uE768";
         FullPlayPauseIcon.Glyph = playing ? "\uE769" : "\uE768";
-        ToolTipService.SetToolTip(PlayPauseButton, playing ? "暂停" : "播放");
-        ToolTipService.SetToolTip(FullPlayPauseButton, playing ? "暂停" : "播放");
+        ToolTipService.SetToolTip(PlayPauseButton, playing ? Strings.Pause : Strings.Play);
+        ToolTipService.SetToolTip(FullPlayPauseButton, playing ? Strings.Pause : Strings.Play);
         _taskbarService?.SetPlaying(playing);
 
         if (_systemMediaControls is not null)
@@ -2551,17 +2525,23 @@ public sealed partial class MainWindow : Window
 
         if (!hasTrack)
         {
-            NowStateText.Text = "准备就绪";
+            NowStateText.Text = Strings.Ready;
         }
         else if (playing)
         {
-            NowStateText.Text = "正在播放";
+            NowStateText.Text = Strings.Playing;
         }
-        else if (NowStateText.Text is not ("正在载入" or "播放结束" or "已载入"))
+        else if (NowStateText.Text is not (LoadingState or EndedState or LoadedState))
         {
-            NowStateText.Text = "已暂停";
+            NowStateText.Text = Strings.Paused;
         }
     }
+
+    // Stable state names used to tell "paused" apart from "loading/ended/loaded"
+    // without comparing localized text.
+    private const string LoadingState = "\u0001loading";
+    private const string EndedState = "\u0001ended";
+    private const string LoadedState = "\u0001loaded";
 
     private void Player_MediaOpened(MediaPlayer sender, object args)
     {
@@ -2593,7 +2573,7 @@ public sealed partial class MainWindow : Window
 
             if (!IsPlaying)
             {
-                NowStateText.Text = "已载入";
+                NowStateText.Text = LoadedState;
             }
         });
     }
@@ -2608,9 +2588,9 @@ public sealed partial class MainWindow : Window
         DispatcherQueue.TryEnqueue(() =>
         {
             var message = string.IsNullOrWhiteSpace(args.ErrorMessage)
-                ? "无法访问文件，或文件格式不受支持"
+                ? Strings.UnsupportedFormat
                 : args.ErrorMessage;
-            SetStatus($"播放失败：{message}");
+            SetStatus(Strings.StatusPlaybackFailed(message));
 
             if (_currentTrack is not null)
             {
@@ -2618,7 +2598,7 @@ public sealed partial class MainWindow : Window
             }
 
             UpdateTransportUi();
-            NowStateText.Text = "播放失败";
+            NowStateText.Text = Strings.PlaybackFailed;
         });
     }
 
@@ -2631,7 +2611,7 @@ public sealed partial class MainWindow : Window
             if (sender.PlaybackState == MediaPlaybackState.Playing && _currentTrack is not null)
             {
                 AddRecent(_currentTrack);
-                SetStatus($"正在播放 · {_currentTrack.Title}");
+                SetStatus(Strings.StatusNowPlaying(_currentTrack.Title));
             }
         });
     }
@@ -2670,8 +2650,8 @@ public sealed partial class MainWindow : Window
 
         _pendingAutoPlay = false;
         UpdateTransportUi();
-        NowStateText.Text = "播放结束";
-        SetStatus("队列已播放完毕");
+        NowStateText.Text = EndedState;
+        SetStatus(Strings.StatusQueueFinished);
 
         _isUpdatingProgress = true;
         ProgressSlider.Value = ProgressSlider.Maximum;
@@ -2812,7 +2792,7 @@ public sealed partial class MainWindow : Window
         _isMuted = true;
         _player.IsMuted = true;
         UpdateVolumeIcon();
-        SetStatus("已静音");
+        SetStatus(Strings.StatusMuted);
     }
 
     private void Unmute()
@@ -2829,7 +2809,7 @@ public sealed partial class MainWindow : Window
         }
 
         UpdateVolumeIcon();
-        SetStatus("已恢复音量");
+        SetStatus(Strings.StatusUnmuted);
     }
 
     private void UpdateVolumeIcon()
@@ -2850,9 +2830,9 @@ public sealed partial class MainWindow : Window
 
         var volume = Math.Round(VolumeSlider.Value / 5d) * 5d;
         VolumeValueText.Text = $"{volume:0}";
-        AutomationProperties.SetName(VolumeValueText, $"当前音量：{volume:0}");
+        AutomationProperties.SetName(VolumeValueText, $"{Strings.CurrentVolume}: {volume:0}");
 
-        var label = _isMuted ? "取消静音" : "静音";
+        var label = _isMuted ? Strings.Unmute : Strings.Mute;
         ToolTipService.SetToolTip(VolumeButton, label);
         ToolTipService.SetToolTip(FullVolumeButton, label);
         AutomationProperties.SetName(VolumeButton, label);

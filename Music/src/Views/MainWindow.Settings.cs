@@ -1,6 +1,9 @@
+using System.Text.RegularExpressions;
 using System.Reflection;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Music.Models;
 using Music.Services;
@@ -11,12 +14,17 @@ public sealed partial class MainWindow
 {
     private AppSettings _settings = new();
     private ThemePreference _themePreference = ThemePreference.System;
+    private AppLanguage _language = AppLanguage.ChineseSimplified;
     private bool _isApplyingSettings = true;
 
     private void InitializeSettings()
     {
         _settings = AppSettingsStore.Load();
         _themePreference = ParseTheme(_settings.Theme);
+        _language = ParseLanguage(_settings.Language);
+        Strings.SetLanguage(_language);
+
+        ApplyLocalizedStaticText();
         ApplyTheme(_themePreference, persist: false);
         UpdateSettingsUi();
     }
@@ -31,12 +39,12 @@ public sealed partial class MainWindow
             ThemePreference.Dark => 2,
             _ => 0
         };
-        LanguageComboBox.SelectedIndex = 0;
+        LanguageComboBox.SelectedIndex = _language == AppLanguage.English ? 1 : 0;
 
         var informational = GetInformationalVersion();
         AppVersionText.Text = GetAlphaLabel(informational);
-        AppVersionDetailText.Text = $"版本 {informational} · WinUI 3 · .NET 10";
-        AppVersionTechText.Text = "Windows App SDK 1.8 · MIT License";
+        AppVersionDetailText.Text = Strings.VersionLine(informational);
+        AppVersionTechText.Text = Strings.SdkLine;
 
         _isApplyingSettings = false;
     }
@@ -46,6 +54,219 @@ public sealed partial class MainWindow
         return Enum.TryParse<ThemePreference>(value, ignoreCase: true, out var theme)
             ? theme
             : ThemePreference.System;
+    }
+
+    private static AppLanguage ParseLanguage(string? value)
+    {
+        return string.Equals(value, "en-US", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(value, "English", StringComparison.OrdinalIgnoreCase)
+            ? AppLanguage.English
+            : AppLanguage.ChineseSimplified;
+    }
+
+    /// <summary>
+    /// Text that never changes at runtime (labels, page titles, empty states,
+    /// tooltips) is stored in the XAML Tag attribute and assigned here in the
+    /// language chosen in the settings page.
+    /// </summary>
+    private void ApplyLocalizedStaticText()
+    {
+        ApplyLocalizedTags(RootGrid);
+
+        SearchScopeText.Text = Strings.SearchScopeAll;
+
+        AutomationProperties.SetName(QueueList, Strings.Queue);
+        AutomationProperties.SetName(RecentList, Strings.RecentTracks);
+        AutomationProperties.SetName(CustomPlaylistList, Strings.CustomTracks);
+        AutomationProperties.SetName(SearchList, Strings.SearchResults);
+
+        DefaultListTitleText.Text = Strings.DefaultList;
+        UpdateRepeatUi();
+        UpdateFavoriteIcon();
+        UpdateVolumeIcon();
+        UpdateTransportUi();
+        RefreshQueueUi();
+        RefreshRecentUi();
+        RefreshCustomPlaylistUi();
+        RefreshSearchPanels();
+
+        if (_currentTrack is null)
+        {
+            ResetNowPlaying();
+        }
+    }
+
+    private static void ApplyLocalizedTags(DependencyObject root)
+    {
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var index = 0; index < count; index++)
+        {
+            var child = VisualTreeHelper.GetChild(root, index);
+
+            if (child is FrameworkElement element && LocalizedTag.TryParse(element.Tag, out var tag))
+            {
+                ApplyLocalizedTag(element, tag);
+            }
+            else if (child is TextBlock label && !LocalizedTag.TryParse(label.Tag, out _))
+            {
+                // A Tag on the Button's AutomationProperties.Name applies to the
+                // button, not to the TextBlock inside it, so look the label up in
+                // the shared name table instead.
+                var chinese = string.IsNullOrWhiteSpace(label.Text)
+                    ? AutomationProperties.GetName(label)
+                    : label.Text;
+                if (chinese.Length > 0 && DescriptiveNamePattern().IsMatch(chinese))
+                {
+                    ApplyLocalizedTag(label, new LocalizedTag(chinese, EnglishFor(chinese)));
+                }
+            }
+
+            // Content controls keep their children in their content template,
+            // which only exists once the control is realised; walk the content
+            // directly so pages that were never shown are translated too.
+            if (child is ContentControl { Content: DependencyObject content })
+            {
+                ApplyLocalizedTags(content);
+            }
+
+            ApplyLocalizedTags(child);
+        }
+    }
+
+    // A Tag set on a Button's AutomationProperties.Name applies to the button
+    // itself, so Chinese-named TextBlocks inside buttons carry no Tag. Their
+    // names come from the Chinese-to-English table instead.
+    private static readonly Dictionary<string, string> AutomationNameEnglish =
+        new(StringComparer.Ordinal)
+        {
+            ["最近的项目"] = "Recently played",
+            ["播放列表"] = "Playlists",
+            ["默认列表"] = "Default list",
+            ["添加播放列表"] = "Add playlist",
+            ["设置"] = "Settings",
+            ["导入音乐"] = "Import music",
+            ["搜索"] = "Search",
+            ["排序"] = "Sort",
+            ["返回"] = "Back",
+            ["播放"] = "Play",
+            ["收藏"] = "Favorite",
+            ["添加到播放列表"] = "Add to playlist",
+            ["更多选项"] = "More options",
+            ["本地音乐"] = "Local music",
+            ["搜索全部音乐"] = "Search all music"
+        };
+
+    [GeneratedRegex(@"[\u4e00-\u9fff]")]
+    private static partial Regex DescriptiveNamePattern();
+
+    private static string EnglishFor(string chinese) =>
+        AutomationNameEnglish.TryGetValue(chinese, out var english) ? english : chinese;
+    private static void ApplyLocalizedTag(FrameworkElement element, LocalizedTag tag)
+    {
+        var chinese = tag.Text;
+        var english = string.IsNullOrEmpty(tag.English) ? tag.Text : tag.English;
+
+        switch (element)
+        {
+            case TextBlock textBlock:
+                textBlock.Text = Strings.T(chinese, english);
+                break;
+
+            case ComboBoxItem comboBoxItem:
+                comboBoxItem.Content = Strings.T(chinese, english);
+                break;
+
+            case TextBox textBox:
+                textBox.PlaceholderText = Strings.T(chinese, english);
+                break;
+
+            case AutoSuggestBox suggestBox:
+                suggestBox.PlaceholderText = Strings.T(chinese, english);
+                break;
+
+            case Button button:
+                ToolTipService.SetToolTip(button, Strings.T(chinese, english));
+                AutomationProperties.SetName(button, Strings.T(chinese, english));
+                break;
+
+            case Slider slider:
+                ToolTipService.SetToolTip(slider, Strings.T(chinese, english));
+                AutomationProperties.SetName(slider, Strings.T(chinese, english));
+                break;
+
+            default:
+                AutomationProperties.SetName(element, Strings.T(chinese, english));
+                break;
+        }
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isApplyingSettings)
+        {
+            return;
+        }
+
+        var language = LanguageComboBox.SelectedIndex == 1
+            ? AppLanguage.English
+            : AppLanguage.ChineseSimplified;
+
+        if (language == _language)
+        {
+            return;
+        }
+
+        _language = language;
+        Strings.SetLanguage(language);
+        _settings.Language = language == AppLanguage.English ? "en-US" : "zh-CN";
+        AppSettingsStore.Save(_settings);
+
+        // Translate the selected item in place first: refreshing the combo
+        // below would restore the original Chinese text if it ran afterwards.
+        LanguageComboBox.SelectedItem = LocalizedValue(LanguageComboBox.SelectedItem);
+
+        ApplyLocalizedStaticText();
+
+        if (_taskbarService is not null)
+        {
+            _taskbarService.SetToolTips(
+                Strings.PreviousTrack,
+                Strings.PlayPause,
+                Strings.NextTrack);
+        }
+
+        // Rows and menus created in code keep whatever language was active
+        // when they were built, so refresh the currently visible page.
+        if (RecentPage.Visibility == Visibility.Visible)
+        {
+            RefreshRecentUi();
+        }
+        else if (CustomPlaylistPage.Visibility == Visibility.Visible &&
+                 _selectedCustomPlaylist is not null)
+        {
+            _ = LoadCustomPlaylistTracksAsync(_selectedCustomPlaylist);
+        }
+
+        if (_searchPageOpen && _lastSearchQuery.Length > 0)
+        {
+            RefreshSearchResults(_lastSearchQuery);
+        }
+
+        SetStatus(Strings.StatusLanguage(language == AppLanguage.English ? "English" : "简体中文"));
+    }
+
+    /// <summary>
+    /// Replaces a ComboBoxItem's content with its translation without changing
+    /// the selection, so assigning SelectedItem does not fire another event.
+    /// </summary>
+    private static object? LocalizedValue(object? item)
+    {
+        if (item is ComboBoxItem { Tag: LocalizedTag tag } comboItem)
+        {
+            comboItem.Content = Strings.T(tag.Text, tag.English);
+        }
+
+        return item;
     }
 
     private void ApplyTheme(ThemePreference preference, bool persist)
@@ -111,27 +332,16 @@ public sealed partial class MainWindow
         }
 
         ApplyTheme(preference, persist: true);
-        SetStatus($"界面主题：{ThemeName(preference)}");
-    }
-
-    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_isApplyingSettings)
-        {
-            return;
-        }
-
-        _settings.Language = "zh-CN";
-        AppSettingsStore.Save(_settings);
+        SetStatus(Strings.StatusTheme(ThemeName(preference)));
     }
 
     private static string ThemeName(ThemePreference preference)
     {
         return preference switch
         {
-            ThemePreference.Light => "浅色",
-            ThemePreference.Dark => "深色",
-            _ => "跟随系统"
+            ThemePreference.Light => Strings.LightTheme,
+            ThemePreference.Dark => Strings.DarkTheme,
+            _ => Strings.SystemTheme
         };
     }
 

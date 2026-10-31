@@ -79,7 +79,7 @@ public sealed partial class MainWindow
         }
 
         e.AcceptedOperation = DataPackageOperation.Copy;
-        e.DragUIOverride.Caption = "添加到当前播放列表";
+        e.DragUIOverride.Caption = Strings.AddToPlaylistCaption;
         e.DragUIOverride.IsCaptionVisible = true;
         e.DragUIOverride.IsGlyphVisible = true;
         CustomPlaylistDropOverlay.Visibility = Visibility.Visible;
@@ -108,7 +108,7 @@ public sealed partial class MainWindow
         }
         catch (Exception exception)
         {
-            SetStatus($"无法读取拖入的文件：{exception.Message}");
+            SetStatus(Strings.StatusDropReadFailed(exception.Message));
             return;
         }
 
@@ -119,7 +119,7 @@ public sealed partial class MainWindow
 
         if (files.Count == 0)
         {
-            SetStatus("拖入的内容中没有可导入的音频文件");
+            SetStatus(Strings.StatusNoAudioDropped);
             return;
         }
 
@@ -135,7 +135,7 @@ public sealed partial class MainWindow
 
         PersistCustomPlaylists();
         await LoadCustomPlaylistTracksAsync(playlist);
-        SetStatus($"已添加 {files.Count} 首到《{playlist.Name}》");
+        SetStatus(Strings.StatusAddedToPlaylist(playlist.Name));
     }
 
     private void LoadCustomPlaylists()
@@ -150,7 +150,7 @@ public sealed partial class MainWindow
 
             AddCustomPlaylistItem(
                 entry.Id,
-                string.IsNullOrWhiteSpace(entry.Name) ? "播放列表" : entry.Name,
+                string.IsNullOrWhiteSpace(entry.Name) ? Strings.Playlist : entry.Name,
                 select: false,
                 beginEditing: false,
                 paths: entry.Paths);
@@ -200,7 +200,7 @@ public sealed partial class MainWindow
             FontSize = 12,
             CornerRadius = new CornerRadius(6),
             VerticalAlignment = VerticalAlignment.Center,
-            PlaceholderText = "播放列表名称",
+            PlaceholderText = Strings.PlaylistNameHint,
             Visibility = Visibility.Collapsed
         };
 
@@ -276,7 +276,7 @@ public sealed partial class MainWindow
     {
         AddCustomPlaylistItem(
             Guid.NewGuid().ToString("N"),
-            "新建播放列表",
+            Strings.NewPlaylist,
             select: true,
             beginEditing: true,
             freshName: true);
@@ -406,13 +406,11 @@ public sealed partial class MainWindow
             ? Visibility.Visible
             : Visibility.Collapsed;
         CustomPlaylistCountText.Text = searching
-            ? $"{_visibleCustomPlaylistTracks.Count} 个匹配"
-            : _customPlaylistTracks.Count == 0
-                ? "0 首曲目"
-                : $"{_customPlaylistTracks.Count} 首曲目";
+            ? Strings.MatchCount(_visibleCustomPlaylistTracks.Count)
+            : Strings.TrackCount(_customPlaylistTracks.Count, 0);
         CustomPlaylistStatusText.Text = _customPlaylistTracks.Count == 0
-            ? "可以拖入音频文件添加到当前播放列表"
-            : $"当前播放列表共 {_customPlaylistTracks.Count} 首曲目";
+            ? Strings.CustomStatusEmpty
+            : Strings.CustomStatusCount(_customPlaylistTracks.Count);
 
         static bool Contains(string? value, string query) =>
             !string.IsNullOrWhiteSpace(value) &&
@@ -446,9 +444,9 @@ public sealed partial class MainWindow
     private void CustomSortButton_Click(object sender, RoutedEventArgs e)
     {
         var flyout = new MenuFlyout();
-        var byAdded = new MenuFlyoutItem { Text = "按添加顺序排序" };
-        var byName = new MenuFlyoutItem { Text = "按名称排序" };
-        var byDuration = new MenuFlyoutItem { Text = "按时长排序" };
+        var byAdded = new MenuFlyoutItem { Text = Strings.SortByAddedOrder };
+        var byName = new MenuFlyoutItem { Text = Strings.SortByName };
+        var byDuration = new MenuFlyoutItem { Text = Strings.SortByDuration };
 
         byAdded.Click += (_, _) => SetCustomSortMode(CustomSortMode.AddedOrder);
         byName.Click += (_, _) => SetCustomSortMode(CustomSortMode.Name);
@@ -528,7 +526,7 @@ public sealed partial class MainWindow
         {
             flyout.Items.Add(new MenuFlyoutItem
             {
-                Text = "还没有自定义播放列表",
+                Text = Strings.NoCustomPlaylists,
                 IsEnabled = false
             });
         }
@@ -564,7 +562,7 @@ public sealed partial class MainWindow
             }
         }
 
-        SetStatus($"已添加到播放列表《{playlist.Name}》");
+        SetStatus(Strings.StatusAddedToPlaylist(playlist.Name));
     }
 
     private void BeginPlaylistRename(SidebarPlaylistItem item, bool freshName)
@@ -630,14 +628,14 @@ public sealed partial class MainWindow
 
         var renameItem = new MenuFlyoutItem
         {
-            Text = "重命名",
+            Text = Strings.Rename,
             Icon = new FontIcon { Glyph = "\uE8AC" }
         };
         renameItem.Click += (_, _) => BeginPlaylistRename(item, freshName: false);
 
         var deleteItem = new MenuFlyoutItem
         {
-            Text = "删除",
+            Text = Strings.Delete,
             Icon = new FontIcon { Glyph = "\uE74D" }
         };
         deleteItem.Click += async (_, _) => await DeletePlaylistAsync(item);
@@ -660,10 +658,10 @@ public sealed partial class MainWindow
         var dialog = new ContentDialog
         {
             XamlRoot = RootGrid.XamlRoot,
-            Title = $"删除“{item.Name}”？",
-            Content = "只会删除这个播放列表条目，不会删除音乐文件。",
-            PrimaryButtonText = "删除",
-            CloseButtonText = "取消",
+            Title = Strings.DeletePlaylistTitle(item.Name),
+            Content = Strings.DeletePlaylistDetail,
+            PrimaryButtonText = Strings.Delete,
+            CloseButtonText = Strings.Cancel,
             DefaultButton = ContentDialogButton.Close
         };
 

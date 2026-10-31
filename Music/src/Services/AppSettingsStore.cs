@@ -9,7 +9,7 @@ public sealed class AppSettings
     /// <summary>"System", "Light" or "Dark".</summary>
     public string Theme { get; set; } = "System";
 
-    /// <summary>Reserved for a future multi-language build; currently "zh-CN".</summary>
+    /// <summary>"zh-CN" (default) or "en-US".</summary>
     public string Language { get; set; } = "zh-CN";
 }
 

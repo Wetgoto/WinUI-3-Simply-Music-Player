@@ -220,15 +220,15 @@ public sealed class Track : INotifyPropertyChanged
 
     public Visibility MissingVisibility => IsMissing ? Visibility.Visible : Visibility.Collapsed;
 
-    public string TrailingText => IsMissing ? "文件缺失" : DurationText;
+    public string TrailingText => IsMissing ? Strings.FileMissing : DurationText;
 
-    public string ToolTipText => IsMissing ? $"文件不存在：{Path}" : Path;
+    public string ToolTipText => IsMissing ? $"{Strings.FileNotFound}: {Path}" : Path;
 
-    public string ArtistDisplay => string.IsNullOrWhiteSpace(Artist) ? "未知艺术家" : Artist;
+    public string ArtistDisplay => string.IsNullOrWhiteSpace(Artist) ? Strings.UnknownArtist : Artist;
 
-    public string AlbumDisplay => string.IsNullOrWhiteSpace(Album) ? "未知专辑" : Album;
+    public string AlbumDisplay => string.IsNullOrWhiteSpace(Album) ? Strings.UnknownAlbum : Album;
 
-    public string AlbumArtistDisplay => string.IsNullOrWhiteSpace(AlbumArtist) ? "未知专辑艺术家" : AlbumArtist;
+    public string AlbumArtistDisplay => string.IsNullOrWhiteSpace(AlbumArtist) ? Strings.UnknownAlbumArtist : AlbumArtist;
 
     public string DurationText => FormatDuration(Duration);
 
@@ -238,7 +238,7 @@ public sealed class Track : INotifyPropertyChanged
         {
             if (IsMissing)
             {
-                return $"文件不存在：{Path}";
+                return $"{Strings.FileNotFound}: {Path}";
             }
 
             if (string.IsNullOrWhiteSpace(Album))
@@ -252,7 +252,7 @@ public sealed class Track : INotifyPropertyChanged
 
     public string QueueTitle => $"{Title} - {ArtistDisplay}";
 
-    public string RecentSubtitle => IsMissing ? "文件不存在" : AlbumDisplay;
+    public string RecentSubtitle => IsMissing ? Strings.FileNotFound : AlbumDisplay;
 
     public string QueueSubtitle
     {
@@ -260,7 +260,7 @@ public sealed class Track : INotifyPropertyChanged
         {
             if (IsMissing)
             {
-                return "文件不存在，双击可移除";
+                return Strings.FileNotFoundDoubleClick;
             }
 
             return AlbumDisplay;
@@ -273,18 +273,18 @@ public sealed class Track : INotifyPropertyChanged
         {
             if (IsMissing)
             {
-                return "文件缺失";
+                return Strings.FileMissing;
             }
 
-            var bitrate = Bitrate > 0 ? $"{Bitrate / 1000} kbps" : "未知比特率";
-            var size = FileSize > 0 ? FormatFileSize(FileSize) : "未知大小";
+            var bitrate = Bitrate > 0 ? $"{Bitrate / 1000} kbps" : Strings.UnknownBitrate;
+            var size = FileSize > 0 ? FormatFileSize(FileSize) : Strings.UnknownSize;
             return $"{bitrate} | {size}";
         }
     }
 
     public string FavoriteGlyph => IsFavorite ? "\uE735" : "\uE734";
 
-    public string FavoriteToolTip => IsFavorite ? "取消收藏" : "收藏";
+    public string FavoriteToolTip => IsFavorite ? Strings.Unfavorite : Strings.Favorite;
 
     public Visibility ArtworkVisibility => Artwork is null ? Visibility.Collapsed : Visibility.Visible;
 

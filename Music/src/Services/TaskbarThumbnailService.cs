@@ -40,6 +40,9 @@ public sealed class TaskbarService : IDisposable
     private bool _disposed;
     private bool _isPlaying;
     private readonly List<IntPtr> _icons = [];
+    private string _previousTip = "上一首";
+    private string _playPauseTip = "播放 / 暂停";
+    private string _nextTip = "下一首";
 
     public TaskbarService(
         IntPtr windowHandle,
@@ -87,14 +90,7 @@ public sealed class TaskbarService : IDisposable
 
             _taskbar.ThumbBarSetImageList(_windowHandle, _imageList);
 
-            var buttons = new[]
-            {
-                Button(1, PreviousImage, "上一曲"),
-                Button(2, PlayImage, "播放 / 暂停"),
-                Button(3, NextImage, "下一曲")
-            };
-
-            var addResult = CallButtons(buttons, _taskbar.ThumbBarAddButtons);
+            var addResult = CallButtons(CreateButtons(), _taskbar.ThumbBarAddButtons);
             if (addResult != 0)
             {
                 return false;
@@ -108,6 +104,46 @@ public sealed class TaskbarService : IDisposable
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Updates the thumbnail button tooltips, for example after a language change.
+    /// </summary>
+    public void SetToolTips(string previous, string playPause, string next)
+    {
+        _previousTip = previous;
+        _playPauseTip = playPause;
+        _nextTip = next;
+
+        if (_taskbar is null || _disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            CallButtons(
+                [
+                    Button(1, PreviousImage, _previousTip),
+                    Button(2, _isPlaying ? PauseImage : PlayImage, _playPauseTip),
+                    Button(3, NextImage, _nextTip)
+                ],
+                _taskbar.ThumbBarUpdateButtons);
+        }
+        catch
+        {
+            // Shell can be shutting down.
+        }
+    }
+
+    private THUMBBUTTON[] CreateButtons()
+    {
+        return
+        [
+            Button(1, PreviousImage, _previousTip),
+            Button(2, PlayImage, _playPauseTip),
+            Button(3, NextImage, _nextTip)
+        ];
     }
 
     public void SetPlaying(bool isPlaying)
@@ -126,7 +162,7 @@ public sealed class TaskbarService : IDisposable
         try
         {
             CallButtons(
-                [Button(2, _isPlaying ? PauseImage : PlayImage, "播放 / 暂停")],
+                [Button(2, _isPlaying ? PauseImage : PlayImage, _playPauseTip)],
                 _taskbar.ThumbBarUpdateButtons);
         }
         catch
