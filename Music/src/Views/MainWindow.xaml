@@ -657,188 +657,6 @@
                 Background="Transparent" />
         </Grid>
 
-        <!-- Left navigation rail -->
-        <Border
-            x:Name="NavigationRail"
-            Grid.Row="1"
-            Grid.Column="0"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0,0,1,0">
-            <!--
-                Sidebar follows the Windows Media Player convention: brand block
-                on top, then search, then a scrolling navigation list, then the
-                settings item pinned to the bottom edge of the rail.
-            -->
-            <Grid Padding="12,0,12,12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="56" />
-                    <RowDefinition Height="44" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!-- App identity -->
-                <Grid
-                    x:Name="BrandArea"
-                    Grid.Row="0"
-                    Height="56"
-                    Padding="4,0,4,0"
-                    Background="Transparent">
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Spacing="12"
-                        VerticalAlignment="Center">
-                        <Border
-                            Width="40"
-                            Height="40"
-                            CornerRadius="12"
-                            Background="White">
-                            <TextBlock
-                                Text="♪"
-                                FontFamily="Segoe UI Symbol"
-                                FontSize="25"
-                                Foreground="#111111"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Margin="0,-3,0,0" />
-                        </Border>
-                        <StackPanel
-                            VerticalAlignment="Center"
-                            Spacing="1"
-                            MaxWidth="176">
-                            <TextBlock
-                                Text="Simple Music Player"
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                TextTrimming="CharacterEllipsis"
-                                MaxLines="1" />
-                            <TextBlock
-                                Tag="local:LocalizedTag(Text='本地音乐', English='Local music')"
-                                Text="本地音乐"
-                                FontSize="11"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Global search entry -->
-                <AutoSuggestBox
-                    Tag="local:LocalizedTag(Text='搜索全部音乐', English='Search all music')"
-                    x:Name="SidebarSearchBox"
-                    Grid.Row="1"
-                    Height="36"
-                    Margin="0,0,0,4"
-                    Padding="10,0"
-                    VerticalAlignment="Center"
-                    VerticalContentAlignment="Center"
-                    FontSize="12"
-                    CornerRadius="8"
-                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    PlaceholderText="搜索全部音乐"
-                    QueryIcon="Find"
-                    TextChanged="SidebarSearchBox_TextChanged"
-                    KeyDown="SidebarSearchBox_KeyDown"
-                    AutomationProperties.Name="搜索所有播放列表" />
-
-                <!-- Navigation tabs -->
-                <ScrollViewer
-                    Grid.Row="2"
-                    Margin="0,6,0,0"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="1">
-                        <Button
-                            x:Name="PlayerNavButton"
-                            Style="{StaticResource SidebarNavButtonStyle}"
-                            Tag="recent"
-                            Click="SidebarNavButton_Click"
-                            AutomationProperties.Name="最近的项目">
-                            <StackPanel Orientation="Horizontal" Spacing="12">
-                                <FontIcon Glyph="&#xE81C;" FontSize="16" />
-                                <TextBlock Text="最近的项目" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='最近的项目', English='Recently played')" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button
-                            x:Name="FavoritesNavButton"
-                            Style="{StaticResource SidebarNavButtonStyle}"
-                            Tag="favorites"
-                            Click="SidebarNavButton_Click"
-                            AutomationProperties.Name="收藏的项目">
-                            <StackPanel Orientation="Horizontal" Spacing="12">
-                                <FontIcon Glyph="&#xE734;" FontSize="16" />
-                                <TextBlock Text="收藏的项目" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='收藏的项目', English='Favorites')" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button
-                            Tag="local:LocalizedTag(Text='播放列表', English='Playlists')"
-                            x:Name="PlaylistSectionButton"
-                            Style="{StaticResource SidebarSectionButtonStyle}"
-                            Click="TogglePlaylistSection"
-                            AutomationProperties.Name="播放列表">
-                            <Grid>
-                                <TextBlock Text="播放列表" VerticalAlignment="Center" Tag="local:LocalizedTag(Text='播放列表', English='Playlists')" />
-                                <FontIcon
-                                    x:Name="PlaylistChevron"
-                                    Glyph="&#xE70D;"
-                                    FontSize="11"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center" />
-                            </Grid>
-                        </Button>
-
-                        <StackPanel x:Name="PlaylistItems">
-                            <Button
-                                x:Name="DefaultPlaylistButton"
-                                Style="{StaticResource SidebarPlaylistButtonStyle}"
-                                Tag="default"
-                                Click="SidebarNavButton_Click"
-                                AutomationProperties.Name="默认列表">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="&#xE8FD;" FontSize="14" />
-                                    <TextBlock Text="默认列表" FontSize="12" Tag="local:LocalizedTag(Text='默认列表', English='Default list')" />
-                                </StackPanel>
-                            </Button>
-                            <StackPanel x:Name="CustomPlaylistsPanel" />
-                            <Button
-                                Tag="local:LocalizedTag(Text='添加播放列表', English='Add playlist')"
-                                x:Name="AddPlaylistButton"
-                                Style="{StaticResource SidebarAddPlaylistButtonStyle}"
-                                Click="AddPlaylistButton_Click"
-                                AutomationProperties.Name="添加播放列表">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="&#xE710;" FontSize="14" />
-                                    <TextBlock Text="添加播放列表" FontSize="12" Tag="local:LocalizedTag(Text='添加播放列表', English='Add playlist')" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
-
-                <Border
-                    Grid.Row="3"
-                    Margin="0,8,0,0"
-                    Padding="0,8,0,0"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="0,1,0,0">
-                    <Button
-                        x:Name="SettingsNavButton"
-                        Style="{StaticResource SidebarNavButtonStyle}"
-                        Tag="settings"
-                        Click="SidebarNavButton_Click"
-                        AutomationProperties.Name="设置">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon Glyph="&#xE713;" FontSize="16" />
-                            <TextBlock Text="设置" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='设置', English='Settings')" />
-                        </StackPanel>
-                    </Button>
-                </Border>
-            </Grid>
-        </Border>
 
         <!--
             Home surface: playlists on top, player bar underneath. It fills the
@@ -2792,7 +2610,7 @@
         <Grid
             x:Name="PlayerPage"
             Grid.Row="1"
-            Grid.Column="1"
+            Grid.ColumnSpan="2"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Opacity="0"
             Visibility="Collapsed"
@@ -3211,5 +3029,190 @@
                 </Grid>
             </Grid>
         </Grid>
+        <!--
+            Left navigation rail. It sits above the player page in z-order so the
+            rail stays usable while the full-window player is open.
+        -->
+        <Border
+            x:Name="NavigationRail"
+            Grid.Row="1"
+            Grid.Column="0"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,1,0">
+            <!--
+                Sidebar follows the Windows Media Player convention: brand block
+                on top, then search, then a scrolling navigation list, then the
+                settings item pinned to the bottom edge of the rail.
+            -->
+            <Grid Padding="12,0,12,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="56" />
+                    <RowDefinition Height="44" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- App identity -->
+                <Grid
+                    x:Name="BrandArea"
+                    Grid.Row="0"
+                    Height="56"
+                    Padding="4,0,4,0"
+                    Background="Transparent">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="12"
+                        VerticalAlignment="Center">
+                        <Border
+                            Width="40"
+                            Height="40"
+                            CornerRadius="12"
+                            Background="White">
+                            <TextBlock
+                                Text="♪"
+                                FontFamily="Segoe UI Symbol"
+                                FontSize="25"
+                                Foreground="#111111"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="0,-3,0,0" />
+                        </Border>
+                        <StackPanel
+                            VerticalAlignment="Center"
+                            Spacing="1"
+                            MaxWidth="176">
+                            <TextBlock
+                                Text="Simple Music Player"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                TextTrimming="CharacterEllipsis"
+                                MaxLines="1" />
+                            <TextBlock
+                                Tag="local:LocalizedTag(Text='本地音乐', English='Local music')"
+                                Text="本地音乐"
+                                FontSize="11"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Global search entry -->
+                <AutoSuggestBox
+                    Tag="local:LocalizedTag(Text='搜索全部音乐', English='Search all music')"
+                    x:Name="SidebarSearchBox"
+                    Grid.Row="1"
+                    Height="36"
+                    Margin="0,0,0,4"
+                    Padding="10,0"
+                    VerticalAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    FontSize="12"
+                    CornerRadius="8"
+                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    PlaceholderText="搜索全部音乐"
+                    QueryIcon="Find"
+                    TextChanged="SidebarSearchBox_TextChanged"
+                    KeyDown="SidebarSearchBox_KeyDown"
+                    AutomationProperties.Name="搜索所有播放列表" />
+
+                <!-- Navigation tabs -->
+                <ScrollViewer
+                    Grid.Row="2"
+                    Margin="0,6,0,0"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="1">
+                        <Button
+                            x:Name="PlayerNavButton"
+                            Style="{StaticResource SidebarNavButtonStyle}"
+                            Tag="recent"
+                            Click="SidebarNavButton_Click"
+                            AutomationProperties.Name="最近的项目">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE81C;" FontSize="16" />
+                                <TextBlock Text="最近的项目" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='最近的项目', English='Recently played')" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
+                            x:Name="FavoritesNavButton"
+                            Style="{StaticResource SidebarNavButtonStyle}"
+                            Tag="favorites"
+                            Click="SidebarNavButton_Click"
+                            AutomationProperties.Name="收藏的项目">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE734;" FontSize="16" />
+                                <TextBlock Text="收藏的项目" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='收藏的项目', English='Favorites')" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
+                            Tag="local:LocalizedTag(Text='播放列表', English='Playlists')"
+                            x:Name="PlaylistSectionButton"
+                            Style="{StaticResource SidebarSectionButtonStyle}"
+                            Click="TogglePlaylistSection"
+                            AutomationProperties.Name="播放列表">
+                            <Grid>
+                                <TextBlock Text="播放列表" VerticalAlignment="Center" Tag="local:LocalizedTag(Text='播放列表', English='Playlists')" />
+                                <FontIcon
+                                    x:Name="PlaylistChevron"
+                                    Glyph="&#xE70D;"
+                                    FontSize="11"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
+
+                        <StackPanel x:Name="PlaylistItems">
+                            <Button
+                                x:Name="DefaultPlaylistButton"
+                                Style="{StaticResource SidebarPlaylistButtonStyle}"
+                                Tag="default"
+                                Click="SidebarNavButton_Click"
+                                AutomationProperties.Name="默认列表">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8FD;" FontSize="14" />
+                                    <TextBlock Text="默认列表" FontSize="12" Tag="local:LocalizedTag(Text='默认列表', English='Default list')" />
+                                </StackPanel>
+                            </Button>
+                            <StackPanel x:Name="CustomPlaylistsPanel" />
+                            <Button
+                                Tag="local:LocalizedTag(Text='添加播放列表', English='Add playlist')"
+                                x:Name="AddPlaylistButton"
+                                Style="{StaticResource SidebarAddPlaylistButtonStyle}"
+                                Click="AddPlaylistButton_Click"
+                                AutomationProperties.Name="添加播放列表">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" />
+                                    <TextBlock Text="添加播放列表" FontSize="12" Tag="local:LocalizedTag(Text='添加播放列表', English='Add playlist')" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border
+                    Grid.Row="3"
+                    Margin="0,8,0,0"
+                    Padding="0,8,0,0"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0">
+                    <Button
+                        x:Name="SettingsNavButton"
+                        Style="{StaticResource SidebarNavButtonStyle}"
+                        Tag="settings"
+                        Click="SidebarNavButton_Click"
+                        AutomationProperties.Name="设置">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xE713;" FontSize="16" />
+                            <TextBlock Text="设置" FontSize="13" FontWeight="SemiBold" Tag="local:LocalizedTag(Text='设置', English='Settings')" />
+                        </StackPanel>
+                    </Button>
+                </Border>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
