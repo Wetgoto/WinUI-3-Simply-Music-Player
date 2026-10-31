@@ -98,12 +98,23 @@ public sealed partial class MainWindow
     /// <summary>Wraps a marquee's label in a two-copy row, once per label.</summary>
     private static void SyncMarqueeClone(ScrollViewer viewer)
     {
+        // Keep the text anchored to the left edge; the default centred content
+        // alignment made short titles look shifted once scrolling stopped.
+        viewer.HorizontalContentAlignment = HorizontalAlignment.Left;
+        viewer.VerticalContentAlignment = VerticalAlignment.Center;
+
         if (viewer.Content is not TextBlock text)
         {
             return;
         }
 
-        var row = new StackPanel { Orientation = Orientation.Horizontal };
+        text.HorizontalAlignment = HorizontalAlignment.Left;
+
+        var row = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
         var clone = new TextBlock
         {
             Text = text.Text,
@@ -111,7 +122,8 @@ public sealed partial class MainWindow
             FontWeight = text.FontWeight,
             FontFamily = text.FontFamily,
             Foreground = text.Foreground,
-            TextWrapping = TextWrapping.NoWrap
+            TextWrapping = TextWrapping.NoWrap,
+            HorizontalAlignment = HorizontalAlignment.Left
         };
 
         viewer.Content = null;

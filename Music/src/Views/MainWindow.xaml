@@ -368,20 +368,26 @@
                             HorizontalScrollBarVisibility="Hidden"
                             VerticalScrollMode="Disabled"
                             VerticalScrollBarVisibility="Hidden"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            HorizontalAlignment="Stretch"
                             IsTabStop="False"
                             Tag="Marquee"
                             SizeChanged="Marquee_SizeChanged">
-                            <TextBlock Text="{x:Bind QueueTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" TextWrapping="NoWrap" IsTextSelectionEnabled="False" />
+                            <TextBlock Text="{x:Bind QueueTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" TextWrapping="NoWrap" HorizontalAlignment="Left" IsTextSelectionEnabled="False" />
                         </ScrollViewer>
                         <ScrollViewer
                             HorizontalScrollMode="Enabled"
                             HorizontalScrollBarVisibility="Hidden"
                             VerticalScrollMode="Disabled"
                             VerticalScrollBarVisibility="Hidden"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            HorizontalAlignment="Stretch"
                             IsTabStop="False"
                             Tag="Marquee"
                             SizeChanged="Marquee_SizeChanged">
-                            <TextBlock Text="{x:Bind RecentSubtitle, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" IsTextSelectionEnabled="False" />
+                            <TextBlock Text="{x:Bind RecentSubtitle, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" HorizontalAlignment="Left" IsTextSelectionEnabled="False" />
                         </ScrollViewer>
                     </StackPanel>
 
