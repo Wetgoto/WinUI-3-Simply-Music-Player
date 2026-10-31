@@ -619,7 +619,11 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Custom title bar: back button, app identity, drag area -->
+        <!--
+            Custom title bar. Only the content column (column 1) is draggable;
+            the sidebar column owns row 0 itself, so the brand block sits in the
+            same visual column as the navigation instead of being duplicated.
+        -->
         <Grid
             x:Name="AppTitleBar"
             Grid.Row="0"
@@ -653,47 +657,41 @@
                 x:Name="TitleBarDragRegion"
                 Grid.Column="1"
                 Background="Transparent">
-                <StackPanel
-                    Orientation="Horizontal"
-                    Spacing="8"
-                    Margin="8,0,0,0"
-                    VerticalAlignment="Center">
-                    <Border
-                        Width="22"
-                        Height="22"
-                        CornerRadius="7"
-                        Background="White">
-                        <TextBlock
-                            Text="♪"
-                            FontFamily="Segoe UI Symbol"
-                            FontSize="14"
-                            Foreground="#111111"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Margin="0,-2,0,0" />
-                    </Border>
-                    <TextBlock
-                        Text="Simple Music Player"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        VerticalAlignment="Center" />
-                </StackPanel>
+
+                <!--
+                    The title bar is a pure drag strip. The app identity belongs
+                    to the sidebar brand block, so nothing is repeated here; the
+                    caption buttons are drawn by the system on the right.
+                -->
+                <TextBlock
+                    x:Name="TitleBarText"
+                    Text="Simple Music Player"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Margin="12,0,0,0"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
             </Grid>
         </Grid>
 
         <!-- Left navigation rail -->
         <Border
             x:Name="NavigationRail"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.RowSpan="2"
             Grid.Column="0"
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0">
+            <!--
+                Sidebar layout follows the Windows Media Player convention: one
+                brand block at the top, search, navigation, and a settings item
+                pinned to the bottom of the rail. The rail owns its full height
+                so the bottom item never collides with the player bar.
+            -->
             <Grid Padding="12,0,12,12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="72" />
-                    <RowDefinition Height="44" />
+                    <RowDefinition Height="48" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -703,7 +701,7 @@
                     x:Name="BrandArea"
                     Grid.Row="0"
                     Height="72"
-                    Padding="4,10,4,0"
+                    Padding="4,0,4,0"
                     Background="Transparent">
                     <StackPanel
                         Orientation="Horizontal"
