@@ -54,6 +54,8 @@
   <!--
     Windows App SDK copies one resource folder per supported UI language.
     Keep Release output tidy by collecting those folders under language\.
+    The current-UI-language folders (zh-CN, en-us) stay at the root because
+    WinUI resolves their .mui files relative to Music.exe.
   -->
   <Target
     Name="OrganizeLanguageResources"
