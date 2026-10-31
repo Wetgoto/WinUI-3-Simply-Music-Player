@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Reflection;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -7,6 +8,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Music.Models;
 using Music.Services;
+using Windows.UI;
 
 namespace Music;
 
@@ -16,6 +18,7 @@ public sealed partial class MainWindow
     private ThemePreference _themePreference = ThemePreference.System;
     private AppLanguage _language = AppLanguage.ChineseSimplified;
     private bool _isApplyingSettings = true;
+    private bool _transparentBackground = true;
 
     private void InitializeSettings()
     {
@@ -26,6 +29,7 @@ public sealed partial class MainWindow
 
         ApplyLocalizedStaticText();
         ApplyTheme(_themePreference, persist: false);
+        ApplyTransparentBackground(_settings.TransparentBackground);
         UpdateSettingsUi();
     }
 
@@ -41,6 +45,7 @@ public sealed partial class MainWindow
         };
         LanguageComboBox.SelectedIndex = _language == AppLanguage.English ? 1 : 0;
         PromptPlaylistNameSwitch.IsOn = _settings.PromptPlaylistName;
+        TransparentBackgroundSwitch.IsOn = _settings.TransparentBackground;
 
         // After the selection is in place, so the closed combo shows the
         // translated choice rather than the XAML default text.
@@ -318,6 +323,12 @@ public sealed partial class MainWindow
             _selectedNavButton.Background = CreateNavSelectionBrush();
         }
 
+        // Repaint the opaque background in the new theme's colour.
+        if (!_transparentBackground)
+        {
+            ApplyTransparentBackground(false);
+        }
+
         if (persist)
         {
             _settings.Theme = preference.ToString();
@@ -349,6 +360,51 @@ public sealed partial class MainWindow
         }
 
         _settings.PromptPlaylistName = PromptPlaylistNameSwitch.IsOn;
+        AppSettingsStore.Save(_settings);
+    }
+
+    /// <summary>
+    /// Turns the translucent window backdrop on or off. Acrylic is preferred
+    /// where available, Mica otherwise, and an opaque theme background when
+    /// the effect is disabled or unsupported.
+    /// </summary>
+    private void ApplyTransparentBackground(bool transparent)
+    {
+        _transparentBackground = transparent;
+
+        if (transparent && DesktopAcrylicController.IsSupported())
+        {
+            SystemBackdrop = new DesktopAcrylicBackdrop();
+        }
+        else if (transparent && MicaController.IsSupported())
+        {
+            SystemBackdrop = new MicaBackdrop();
+        }
+        else
+        {
+            // No backdrop: the window paints an opaque theme colour instead.
+            SystemBackdrop = null;
+        }
+
+        // A solid window needs an explicit background; without a backdrop the
+        // root grid would otherwise show whatever is behind the window. The
+        // colour is resolved from the current theme each time.
+        RootGrid.Background = transparent
+            ? null
+            : new SolidColorBrush(IsDarkThemeEffective
+                ? Color.FromArgb(255, 32, 32, 32)
+                : Color.FromArgb(255, 243, 243, 243));
+    }
+
+    private void TransparentBackgroundSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_isApplyingSettings || TransparentBackgroundSwitch is null)
+        {
+            return;
+        }
+
+        ApplyTransparentBackground(TransparentBackgroundSwitch.IsOn);
+        _settings.TransparentBackground = TransparentBackgroundSwitch.IsOn;
         AppSettingsStore.Save(_settings);
     }
 

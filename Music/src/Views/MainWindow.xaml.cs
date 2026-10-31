@@ -85,14 +85,11 @@ public sealed partial class MainWindow : Window
         LoadCustomPlaylists();
 
         Title = "Simple Music Player";
-        if (DesktopAcrylicController.IsSupported())
-        {
-            SystemBackdrop = new DesktopAcrylicBackdrop();
-        }
-        else if (MicaController.IsSupported())
-        {
-            SystemBackdrop = new MicaBackdrop();
-        }
+
+        // Read the saved preference before the window is first shown so the
+        // backdrop does not visibly change afterwards.
+        _settings = AppSettingsStore.Load();
+        ApplyTransparentBackground(_settings.TransparentBackground);
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleBarDragRegion);

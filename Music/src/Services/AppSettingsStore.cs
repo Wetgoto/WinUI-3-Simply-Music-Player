@@ -16,6 +16,12 @@ public sealed class AppSettings
     /// Ask for a playlist name when a new playlist is created from a track menu.
     /// </summary>
     public bool PromptPlaylistName { get; set; } = true;
+
+    /// <summary>
+    /// Translucent window backdrop (acrylic/mica). Turning it off gives the
+    /// window a solid, opaque background.
+    /// </summary>
+    public bool TransparentBackground { get; set; } = true;
 }
 
 /// <summary>

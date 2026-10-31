@@ -2667,6 +2667,43 @@
                                     Toggled="PromptPlaylistNameSwitch_Toggled"
                                     AutomationProperties.Name="新建播放列表时提示命名" />
                             </Grid>
+
+                            <Border
+                                Height="1"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                            <Grid Padding="0,14" ColumnSpacing="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    Spacing="3"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='背景透明效果', English='Transparent background')"
+                                        Text="背景透明效果"
+                                        FontSize="14"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Tag="local:LocalizedTag(Text='关闭后窗口使用不透明的纯色背景。', English='When off, the window uses a solid background.')"
+                                        Text="关闭后窗口使用不透明的纯色背景。"
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <ToggleSwitch
+                                    Tag="local:LocalizedTag(Text='背景透明效果', English='Transparent background')"
+                                    x:Name="TransparentBackgroundSwitch"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    OnContent="开"
+                                    OffContent="关"
+                                    Toggled="TransparentBackgroundSwitch_Toggled"
+                                    AutomationProperties.Name="背景透明效果" />
+                            </Grid>
                         </StackPanel>
                     </Border>
 
