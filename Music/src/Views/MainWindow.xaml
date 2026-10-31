@@ -213,12 +213,12 @@
                                         <VisualState x:Name="Selected">
                                             <Storyboard>
                                                 <!--
-                                                    The row template draws its own
-                                                    highlight for the playing track,
-                                                    so the container must not paint a
-                                                    second one on top of it. Selection
-                                                    stays visually neutral; only the
-                                                    hover states light the layer.
+                                                    The row template already paints the
+                                                    highlight for the playing track, and
+                                                    it keeps it on screen permanently. The
+                                                    container must stay neutral here or the
+                                                    two fills stack up into the stray extra
+                                                    block. Only hover lights this layer.
                                                 -->
                                                 <DoubleAnimation
                                                     Storyboard.TargetName="HoverLayer"
@@ -279,7 +279,8 @@
 
                                 <Border
                                     x:Name="HoverLayer"
-                                    Background="Transparent"
+                                    Margin="10,6"
+                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="10"
                                     IsHitTestVisible="False"
                                     Opacity="0" />
@@ -1091,7 +1092,7 @@
                                                                     <DoubleAnimation
                                                                         Storyboard.TargetName="HoverLayer"
                                                                         Storyboard.TargetProperty="Opacity"
-                                                                        To="1"
+                                                                        To="0"
                                                                         Duration="0:0:0.08" />
                                                                     <DoubleAnimation
                                                                         Storyboard.TargetName="SelectionIndicator"
@@ -1147,7 +1148,7 @@
 
                                                     <Border
                                                         x:Name="HoverLayer"
-                                                        Background="Transparent"
+                                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                                         CornerRadius="10"
                                                         IsHitTestVisible="False"
                                                         Opacity="0" />
