@@ -2792,7 +2792,7 @@
         <Grid
             x:Name="PlayerPage"
             Grid.Row="1"
-            Grid.Column="1"
+            Grid.ColumnSpan="2"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Opacity="0"
             Visibility="Collapsed"
