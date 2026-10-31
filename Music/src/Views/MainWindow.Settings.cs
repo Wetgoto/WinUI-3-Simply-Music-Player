@@ -334,23 +334,6 @@ public sealed partial class MainWindow
         SettingsPanel.Width = Math.Min(available, 820);
     }
 
-    /// <summary>
-    /// Paints the sidebar with a solid colour. It has to be opaque because the
-    /// full-window player page is drawn behind it and would otherwise show
-    /// through, making the rail look translucent.
-    /// </summary>
-    private void ApplySidebarBackground(bool dark)
-    {
-        if (NavigationRail is null)
-        {
-            return;
-        }
-
-        NavigationRail.Background = new SolidColorBrush(dark
-            ? Color.FromArgb(255, 26, 26, 26)
-            : Color.FromArgb(255, 245, 245, 245));
-    }
-
     private void ApplyTheme(ThemePreference preference, bool persist)
     {
         _themePreference = preference;
@@ -365,7 +348,6 @@ public sealed partial class MainWindow
 
         ApplyNativeTitleBarTheme(dark);
         ApplyCustomTitleBarTheme(dark);
-        ApplySidebarBackground(dark);
 
         if (_selectedNavButton is not null)
         {
