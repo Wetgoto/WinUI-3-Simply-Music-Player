@@ -70,7 +70,7 @@ public sealed partial class MainWindow
 
     private void CustomPlaylist_DragOver(object sender, DragEventArgs e)
     {
-        if (CustomPlaylistPage.Visibility != Visibility.Visible ||
+        if (_currentPage != AppPage.CustomPlaylist ||
             _selectedCustomPlaylist is null ||
             !e.DataView.Contains(StandardDataFormats.StorageItems))
         {

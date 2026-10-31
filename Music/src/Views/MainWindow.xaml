@@ -615,8 +615,10 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <!--
-            Row 1 holds every page; row 2 holds the player bar. Keeping them in
-            separate rows means no page can draw under the bar.
+            Row 1 holds everything below the caption: the rail, the pages and
+            the player bar, all inside ContentSurface so a page switch can fade
+            the whole block at once. The bar keeps its own row there, so no page
+            can draw under it.
         -->
         <Grid.RowDefinitions>
             <!--
@@ -627,7 +629,6 @@
             -->
             <RowDefinition x:Name="TitleBarRow" Height="40" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!--
@@ -669,15 +670,34 @@
         </Grid>
 
         <!--
-            Left navigation rail. It spans rows 1-2 so it runs all the way to the
-            bottom edge of the window, past the player bar. Its fill is a
+            Everything below the caption strip. Navigation fades this surface
+            out, swaps the page while nothing is visible and fades it back in,
+            so a page switch is a dissolve instead of two pages overlapping.
+            The gradient behind it lives on the root grid and stays put.
+        -->
+        <Grid
+            x:Name="ContentSurface"
+            Grid.Row="1"
+            Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+        <!--
+            Left navigation rail. It spans both rows so it runs all the way to
+            the bottom edge of the window, past the player bar. Its fill is a
             translucent tint so it still shows the Mica backdrop and picks up the
             same warm tones as the content area; a solid fill would cut the
             backdrop off with a visibly darker block.
         -->
         <Border
             x:Name="NavigationRail"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.RowSpan="2"
             Grid.Column="0"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -870,12 +890,12 @@
         </Border>
 
         <!--
-            Home surface: the playlist pages only. The player bar is a root-grid
-            sibling in row 2, so pages never extend underneath it.
+            Home surface: the playlist pages only. The player bar sits in the
+            row below it, so pages never extend underneath it.
         -->
         <Grid
             x:Name="HomeSurface"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -1204,7 +1224,7 @@
         <!-- Player control bar -->
         <Border
             x:Name="PlayerBar"
-            Grid.Row="2"
+            Grid.Row="1"
             Grid.Column="1"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -1524,7 +1544,7 @@
         <!-- Recently played projects -->
         <Grid
             x:Name="RecentPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             Background="Transparent"
             Visibility="Collapsed">
@@ -1710,7 +1730,7 @@
         <!-- Favorites page: every track marked with the star -->
         <Grid
             x:Name="FavoritesPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             Background="Transparent"
             Visibility="Collapsed">
@@ -1882,7 +1902,7 @@
         <!-- User-created playlist page -->
         <Grid
             x:Name="CustomPlaylistPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             Background="Transparent"
             Visibility="Collapsed">
@@ -2119,7 +2139,7 @@
         <!-- Global search results page -->
         <Grid
             x:Name="SearchPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             Background="Transparent"
             Visibility="Collapsed">
@@ -2238,7 +2258,7 @@
         -->
         <Grid
             x:Name="LibraryPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             Background="Transparent"
             Visibility="Collapsed">
@@ -2354,7 +2374,7 @@
         <!-- Settings page -->
         <Grid
             x:Name="SettingsPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="1"
             Background="Transparent"
             Visibility="Collapsed">
@@ -2735,7 +2755,7 @@
         -->
         <Grid
             x:Name="PlayerPage"
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.RowSpan="2"
             Grid.ColumnSpan="2"
             Background="Transparent"
@@ -3194,6 +3214,7 @@
                     </Grid>
                 </Grid>
             </Grid>
+        </Grid>
         </Grid>
     </Grid>
 </Window>

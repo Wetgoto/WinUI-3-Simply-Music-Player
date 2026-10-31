@@ -94,6 +94,19 @@ public sealed partial class MainWindow : Window
     private AppPage _currentPage = AppPage.Default;
     private AppPage _pageBeforePlayer = AppPage.Default;
 
+    /// <summary>Page currently painted; it lags <see cref="_currentPage"/> until
+    /// the fade-out reaches zero, which is when the swap happens.</summary>
+    private AppPage _visiblePage = AppPage.Default;
+
+    /// <summary>Length of the whole dissolve between two pages, in milliseconds.</summary>
+    private const int PageFadeMilliseconds = 200;
+
+    /// <summary>Incremented by every navigation; a fade only finishes if its
+    /// token is still the current one.</summary>
+    private int _navigationToken;
+
+    private Storyboard? _contentFadeStoryboard;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -1029,24 +1042,127 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Switches the window to one page: every other page is collapsed first, so
-    /// a page is never left visible underneath the next one. The player page is
-    /// a full-window surface, so it also takes the rail and the player bar away
-    /// instead of drawing over them.
+    /// Navigates to a page. The visible surface fades out, the page is swapped
+    /// while nothing is visible and the new page fades back in, so two pages are
+    /// never drawn on top of each other even for a single frame.
     /// </summary>
     private void NavigateTo(AppPage page)
     {
+        if (page == _currentPage)
+        {
+            return;
+        }
+
         if (page == AppPage.Player)
         {
-            if (_currentPage == AppPage.Player)
-            {
-                return;
-            }
-
             _pageBeforePlayer = _currentPage;
         }
 
         _currentPage = page;
+        _ = FadeToPageAsync(page);
+    }
+
+    private async Task FadeToPageAsync(AppPage page)
+    {
+        // A newer navigation or page swap invalidates this one. The token keeps
+        // a stale fade from writing an opacity on top of the current one.
+        var token = ++_navigationToken;
+        var half = TimeSpan.FromMilliseconds(PageFadeMilliseconds / 2.0);
+
+        try
+        {
+            await SetContentOpacityAsync(0, half, token);
+            if (token != _navigationToken)
+            {
+                return;
+            }
+
+            ShowPage(page);
+
+            await SetContentOpacityAsync(1, half, token);
+        }
+        finally
+        {
+            // Whatever happened, never leave the window dimmed: the UI would look
+            // disabled until the next navigation.
+            if (token == _navigationToken)
+            {
+                ContentSurface.Opacity = 1;
+                _contentFadeStoryboard?.Stop();
+                _contentFadeStoryboard = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fades ContentSurface and makes sure it really ends on the requested
+    /// value. The storyboard is stopped before the value is committed: a
+    /// finished animation keeps holding its last value, and a hold that never
+    /// gets released is what used to leave a page translucent on top of the
+    /// page it was opened from.
+    /// </summary>
+    private async Task SetContentOpacityAsync(double opacity, TimeSpan duration, int token)
+    {
+        var from = ContentSurface.Opacity;
+
+        // While the fade runs the base value sits at the darker end, so that
+        // stopping the animation early (another navigation) can only make the
+        // window dimmer, never flash it bright for a frame.
+        ContentSurface.Opacity = Math.Min(from, opacity);
+        AnimateContentOpacity(from, opacity, duration);
+        await Task.Delay(duration);
+
+        if (token != _navigationToken)
+        {
+            return;
+        }
+
+        if (opacity >= 1)
+        {
+            ContentSurface.Opacity = 1;
+        }
+
+        // Dropping the animation releases its hold on the property; the base
+        // value set above is what stays visible afterwards.
+        _contentFadeStoryboard?.Stop();
+        _contentFadeStoryboard = null;
+    }
+
+    private void AnimateContentOpacity(double from, double to, TimeSpan duration)
+    {
+        _contentFadeStoryboard?.Stop();
+
+        var animation = new DoubleAnimation
+        {
+            From = from,
+            To = to,
+            Duration = new Duration(duration)
+            // Opacity is animated on the composition thread: leaving
+            // EnableDependentAnimation off keeps the fade smooth and keeps the UI
+            // thread free, so the swap below happens on time.
+        };
+        Storyboard.SetTarget(animation, ContentSurface);
+        Storyboard.SetTargetProperty(animation, "Opacity");
+
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(animation);
+
+        // Held in a field so the storyboard cannot be collected mid-fade.
+        _contentFadeStoryboard = storyboard;
+        storyboard.Begin();
+    }
+
+    /// <summary>
+    /// Shows one page: every other page is collapsed first, so a page is never
+    /// left visible underneath the next one. The player page is a full-window
+    /// surface, so it also takes the rail and the player bar away instead of
+    /// drawing over them.
+    /// </summary>
+    private void ShowPage(AppPage page)
+    {
+        var leaving = _visiblePage;
+        _visiblePage = page;
+
         HideAllPages();
 
         var home = page != AppPage.Player;
@@ -1054,14 +1170,6 @@ public sealed partial class MainWindow : Window
         NavigationRail.Visibility = home ? Visibility.Visible : Visibility.Collapsed;
         PlayerBar.Visibility = home ? Visibility.Visible : Visibility.Collapsed;
         BackButton.Visibility = home ? Visibility.Collapsed : Visibility.Visible;
-
-        // A half-finished fade used to leave a surface translucent, which made
-        // the previous page show through the next one. Switching is direct, so
-        // every surface is put back to fully opaque on the way in.
-        HomeSurface.Opacity = 1;
-        NavigationRail.Opacity = 1;
-        PlayerBar.Opacity = 1;
-        PlayerPage.Opacity = 1;
 
         switch (page)
         {
@@ -1100,6 +1208,13 @@ public sealed partial class MainWindow : Window
             case AppPage.Player:
                 PlayerPage.Visibility = Visibility.Visible;
                 break;
+        }
+
+        // The player bar only comes back now, so focus it after the swap rather
+        // than right after the click.
+        if (leaving == AppPage.Player && page != AppPage.Player)
+        {
+            NowPlayingAreaButton.Focus(FocusState.Programmatic);
         }
     }
 
@@ -1844,8 +1959,9 @@ public sealed partial class MainWindow : Window
             return;
         }
 
+        // Focus moves back to the now-playing button once the bar is shown
+        // again, which ShowPage does after the fade-out.
         NavigateTo(_pageBeforePlayer);
-        NowPlayingAreaButton.Focus(FocusState.Programmatic);
     }
 
     private void QueueList_ContainerContentChanging(        ListViewBase sender,
@@ -2035,7 +2151,7 @@ public sealed partial class MainWindow : Window
 
         // Update the favorites list in place. Rebuilding it here used to reload
         // every record and reset the list on each track change.
-        if (FavoritesPage.Visibility == Visibility.Visible && track is not null)
+        if (_currentPage == AppPage.Favorites && track is not null)
         {
             ApplyFavoriteStateToFavoritesPage(track);
         }

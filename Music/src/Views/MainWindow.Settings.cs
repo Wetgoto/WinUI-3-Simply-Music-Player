@@ -306,12 +306,12 @@ public sealed partial class MainWindow
         }
 
         // Rows and menus created in code keep whatever language was active
-        // when they were built, so refresh the currently visible page.
-        if (RecentPage.Visibility == Visibility.Visible)
+        // when they were built, so refresh the page the router is on.
+        if (_currentPage == AppPage.Recent)
         {
             RefreshRecentUi();
         }
-        else if (CustomPlaylistPage.Visibility == Visibility.Visible &&
+        else if (_currentPage == AppPage.CustomPlaylist &&
                  _selectedCustomPlaylist is not null)
         {
             _ = LoadCustomPlaylistTracksAsync(_selectedCustomPlaylist);
