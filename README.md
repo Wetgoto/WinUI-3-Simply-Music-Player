@@ -1,14 +1,14 @@
 # Simple Music Player
 
-**Alpha 0.2 · 早期测试版 - made by deepseek AI**
+**Alpha 0.3 · 早期测试版 - made by deepseek AI**
 
 > [!WARNING]
-> 这是 **Alpha 0.2** 早期测试版本，功能和界面仍在快速调整，可能存在崩溃、播放异常、界面错位、配置或数据不兼容等问题。
+> 这是 **Alpha 0.3** 早期测试版本，功能和界面仍在快速调整，可能存在崩溃、播放异常、界面错位、配置或数据不兼容等问题。
 > 升级或试用前请先备份程序目录下的 `config` 和 `data`；不要把它作为唯一副本用于重要场景。
 
 一款使用 **WinUI 3 / Windows App SDK** 编写的本地音乐播放器：Fluent 深色界面、常驻播放条、可自定义播放列表，以及接近系统播放器的完整播放控制。
 
-![Version](https://img.shields.io/badge/version-Alpha%200.2-orange)
+![Version](https://img.shields.io/badge/version-Alpha%200.3-orange)
 ![Status](https://img.shields.io/badge/status-early%20alpha-red)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
@@ -65,7 +65,7 @@
 - 侧栏底部固定“设置”按钮，设置页沿用列表页的 66px 标题栏、卡片和间距，在右侧显示，不打断正在播放的音乐。
 - **应用语言**：简体中文 / English 切换，切换后整个界面立即更新，选择保存在 `config\settings.json`。
 - **界面主题**：跟随系统 / 浅色 / 深色三种选择，切换后立即生效，并保存到 `config\settings.json`，下次启动继续使用；标题栏按钮颜色会随主题切换。
-- 设置页底部显示应用名称、**Alpha 0.2**（`0.2.0-alpha`）、WinUI 3 / .NET 10 / Windows App SDK 版本、版权信息和 GitHub 仓库链接。
+- 设置页底部显示应用名称、**Alpha 0.3**（`0.3.0-alpha`）、WinUI 3 / .NET 10 / Windows App SDK 版本、版权信息和 GitHub 仓库链接。
 
 ### 元数据
 
@@ -81,7 +81,7 @@
 
 ## 下载与运行
 
-> 当前源码为 **Alpha 0.2** 早期测试版。遇到问题、崩溃或界面异常，欢迎到 [Issues](../../issues) 反馈。
+> 当前源码为 **Alpha 0.3** 早期测试版。遇到问题、崩溃或界面异常，欢迎到 [Issues](../../issues) 反馈。
 
 1. 打开本仓库的 [Releases](../../releases) 页面。
 2. 下载最新的 `Music-Player-Release-win-x64.zip` 并解压到任意文件夹。
@@ -236,7 +236,7 @@ Music-Player-GitHub/
 
 ## 已知限制
 
-> **Alpha 0.2** 是早期测试版本，以下只是已知问题的一部分，可能还有未列出的缺陷。
+> **Alpha 0.3** 是早期测试版本，以下只是已知问题的一部分，可能还有未列出的缺陷。
 
 - 功能、界面和配置文件格式仍可能调整，升级前请备份 `config` 和 `data`。
 - 任务栏缩略图工具栏在部分 Windows 11 桌面会话会返回 `E_ACCESSDENIED`，此时使用系统媒体卡片（SMTC）作为可用入口。

@@ -372,7 +372,7 @@
                             VerticalContentAlignment="Center"
                             HorizontalAlignment="Stretch"
                             IsTabStop="False"
-                            Tag="Marquee"
+                            AutomationProperties.HelpText="MarqueeScroll"
                             SizeChanged="Marquee_SizeChanged">
                             <TextBlock Text="{x:Bind QueueTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" TextWrapping="NoWrap" HorizontalAlignment="Left" IsTextSelectionEnabled="False" />
                         </ScrollViewer>
@@ -385,7 +385,7 @@
                             VerticalContentAlignment="Center"
                             HorizontalAlignment="Stretch"
                             IsTabStop="False"
-                            Tag="Marquee"
+                            AutomationProperties.HelpText="MarqueeScroll"
                             SizeChanged="Marquee_SizeChanged">
                             <TextBlock Text="{x:Bind RecentSubtitle, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" HorizontalAlignment="Left" IsTextSelectionEnabled="False" />
                         </ScrollViewer>
@@ -1546,7 +1546,7 @@
                                     VerticalScrollMode="Disabled"
                                     VerticalScrollBarVisibility="Hidden"
                                     IsTabStop="False"
-                                    Tag="Marquee"
+                                    AutomationProperties.HelpText="MarqueeScroll"
                                     SizeChanged="Marquee_SizeChanged">
                                     <TextBlock
                                         Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
@@ -1562,7 +1562,7 @@
                                     VerticalScrollMode="Disabled"
                                     VerticalScrollBarVisibility="Hidden"
                                     IsTabStop="False"
-                                    Tag="Marquee"
+                                    AutomationProperties.HelpText="MarqueeScroll"
                                     SizeChanged="Marquee_SizeChanged">
                                     <TextBlock
                                         Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"
@@ -2827,7 +2827,7 @@
                                 VerticalScrollMode="Disabled"
                                 VerticalScrollBarVisibility="Hidden"
                                 IsTabStop="False"
-                                Tag="Marquee"
+                                AutomationProperties.HelpText="MarqueeScroll"
                                 SizeChanged="Marquee_SizeChanged">
                                 <TextBlock
                                     Tag="local:LocalizedTag(Text='未播放', English='Not playing')"
@@ -2843,7 +2843,7 @@
                                 VerticalScrollMode="Disabled"
                                 VerticalScrollBarVisibility="Hidden"
                                 IsTabStop="False"
-                                Tag="Marquee"
+                                AutomationProperties.HelpText="MarqueeScroll"
                                 SizeChanged="Marquee_SizeChanged">
                                 <TextBlock
                                     Tag="local:LocalizedTag(Text='从播放列表选择一首歌曲', English='Pick a song from a playlist')"

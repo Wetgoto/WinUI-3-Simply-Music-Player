@@ -11,11 +11,11 @@
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 
-    <!-- Alpha 0.2: early test release. -->
-    <Version>0.2.0-alpha</Version>
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
-    <FileVersion>0.2.0.0</FileVersion>
-    <InformationalVersion>0.2.0-alpha</InformationalVersion>
+    <!-- Alpha 0.3: early test release. -->
+    <Version>0.3.0-alpha</Version>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
+    <FileVersion>0.3.0.0</FileVersion>
+    <InformationalVersion>0.3.0-alpha</InformationalVersion>
 
     <!-- WinUI 3 -->
     <UseWinUI>true</UseWinUI>

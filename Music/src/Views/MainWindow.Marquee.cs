@@ -1,5 +1,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
@@ -17,6 +18,8 @@ public sealed partial class MainWindow
     private const double MarqueeStepPixels = 0.9;
     private const int MarqueeTickMilliseconds = 30;
     private const int MarqueeGapPixels = 40;
+    private const string MarqueeTag = "MarqueeScroll";
+    private const string MarqueeDoneTag = "MarqueeScrollDone";
 
     private DispatcherQueueTimer? _marqueeTimer;
 
@@ -65,9 +68,18 @@ public sealed partial class MainWindow
                 clone.Text = source.Text;
             }
 
-            // The text only travels once the window is narrower than a single copy.
+            // The duplicate only exists to make the loop seamless. When the text
+            // already fits (or is short) it would just be a visible second copy,
+            // so it is hidden until scrolling is actually needed.
             var cycle = source.ActualWidth + MarqueeGapPixels;
-            if (cycle <= 1 || viewer.ViewportWidth >= cycle)
+            var scrolling = cycle > 1 && viewer.ViewportWidth < cycle;
+            var wanted = scrolling ? Visibility.Visible : Visibility.Collapsed;
+            if (clone.Visibility != wanted)
+            {
+                clone.Visibility = wanted;
+            }
+
+            if (!scrolling)
             {
                 if (viewer.HorizontalOffset != 0)
                 {
@@ -103,11 +115,16 @@ public sealed partial class MainWindow
         viewer.HorizontalContentAlignment = HorizontalAlignment.Left;
         viewer.VerticalContentAlignment = VerticalAlignment.Center;
 
-        if (viewer.Content is not TextBlock text)
+        // SizeChanged fires on every layout pass. Once the label has been
+        // wrapped its content is a StackPanel, and wrapping again would add a
+        // second duplicate, so only plain text is ever wrapped.
+        if (viewer.Content is not TextBlock text ||
+            AutomationProperties.GetHelpText(viewer) == MarqueeDoneTag)
         {
             return;
         }
 
+        AutomationProperties.SetHelpText(viewer, MarqueeDoneTag);
         text.HorizontalAlignment = HorizontalAlignment.Left;
 
         var row = new StackPanel
@@ -123,7 +140,9 @@ public sealed partial class MainWindow
             FontFamily = text.FontFamily,
             Foreground = text.Foreground,
             TextWrapping = TextWrapping.NoWrap,
-            HorizontalAlignment = HorizontalAlignment.Left
+            HorizontalAlignment = HorizontalAlignment.Left,
+            // Shown only once the text is too long; the first tick decides.
+            Visibility = Visibility.Collapsed
         };
 
         viewer.Content = null;
@@ -151,7 +170,9 @@ public sealed partial class MainWindow
                     continue;
                 }
 
-                if (child is ScrollViewer { Tag: "Marquee" } viewer)
+                if (child is ScrollViewer viewer &&
+                    (AutomationProperties.GetHelpText(viewer) == MarqueeTag ||
+                     AutomationProperties.GetHelpText(viewer) == MarqueeDoneTag))
                 {
                     if (viewer.ActualWidth > 0)
                     {
