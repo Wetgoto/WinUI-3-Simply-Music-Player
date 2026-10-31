@@ -405,19 +405,9 @@ public sealed partial class MainWindow
 
     private async Task PlaySearchResultAsync(Track track)
     {
-        var queueTrack = _queue.FirstOrDefault(candidate =>
-            string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase));
-
-        if (queueTrack is null)
-        {
-            queueTrack = track;
-            _queue.Add(queueTrack);
-            _knownPaths.Add(queueTrack.Path);
-            RefreshQueueUi();
-            PersistPlaylist();
-        }
-
-        await PlayTrackFromUiAsync(queueTrack);
+        // A search result is not owned by any list the user opened, so it
+        // plays on its own instead of being added to the default queue.
+        await PlayTrackInScopeAsync(track, PlaybackScope.Single);
     }
 
     private void SearchList_RightTapped(object sender, RightTappedRoutedEventArgs e)

@@ -1597,11 +1597,14 @@
                                     Click="RepeatButton_Click"
                                     ToolTipService.ToolTip="循环播放：关闭"
                                     AutomationProperties.Name="循环播放">
-                                    <FontIcon
-                                        x:Name="RepeatIcon"
-                                        Glyph="&#xE8EE;"
-                                        FontSize="16"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <Grid x:Name="RepeatGlyphHost">
+                                        <FontIcon
+                                            x:Name="RepeatIcon"
+                                            Glyph="&#xE8EE;"
+                                            FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                            FontSize="16"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Grid>
                                 </Button>
 
                                 <Button
@@ -2655,11 +2658,14 @@
                                         Click="RepeatButton_Click"
                                         ToolTipService.ToolTip="循环播放：关闭"
                                         AutomationProperties.Name="循环播放">
-                                        <FontIcon
-                                            x:Name="FullRepeatIcon"
-                                            Glyph="&#xE8EE;"
-                                            FontSize="16"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <Grid x:Name="FullRepeatGlyphHost">
+                                            <FontIcon
+                                                x:Name="FullRepeatIcon"
+                                                Glyph="&#xE8EE;"
+                                                FontFamily="Segoe Fluent Icons,Segoe MDL2 Assets"
+                                                FontSize="16"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Grid>
                                     </Button>
 
                                     <Button

@@ -46,6 +46,13 @@ public sealed partial class MainWindow : Window
     private readonly DispatcherQueueTimer _positionTimer;
 
     private Track? _currentTrack;
+
+    /// <summary>
+    /// The list playback is currently following: the default queue, a custom
+    /// playlist, or a single track started from Recently played.
+    /// </summary>
+    private PlaybackScope _playbackScope = PlaybackScope.Queue;
+
     private bool _taskbarInitialized;
     private TaskbarService? _taskbarService;
     private SystemMediaTransportControls? _systemMediaControls;
@@ -183,8 +190,8 @@ public sealed partial class MainWindow : Window
         ResetNowPlaying();
         RefreshQueueUi();
         UpdateVolumeIcon();
-        _repeatIdleForeground = RepeatIcon.Foreground;
-        _fullRepeatIdleForeground = FullRepeatIcon.Foreground;
+        _repeatIdleForeground = GetSecondaryTextBrush();
+        _fullRepeatIdleForeground = GetSecondaryTextBrush();
         UpdateRepeatUi();
         SetStatus(Strings.Initializing);
     }
@@ -883,6 +890,18 @@ public sealed partial class MainWindow : Window
         button.Background = CreateNavSelectionBrush();
         _selectedCustomPlaylist = null;
 
+        // Results shown on the search page reflect their source playlists, so
+        // refresh them after the navigation (the page may still be open behind
+        // the one being switched to).
+        RefreshSearchResults(_lastSearchQuery);
+
+        // Only a custom playlist can keep its own play order. Switching away
+        // while one was playing falls back to the default queue.
+        if (_playbackScope == PlaybackScope.CustomPlaylist)
+        {
+            _playbackScope = PlaybackScope.Queue;
+        }
+
         if (key == "default")
         {
             MainWorkspace.Visibility = Visibility.Visible;
@@ -1303,7 +1322,9 @@ public sealed partial class MainWindow : Window
 
     private void LoadTrack(Track track, bool autoPlay)
     {
-        if (!_queue.Contains(track))
+        // The track may live in the default queue, a custom playlist, or only
+        // in Recently played, so the queue alone is not a valid guard here.
+        if (IndexInPlaybackScope(track) < 0)
         {
             return;
         }
@@ -1480,18 +1501,19 @@ public sealed partial class MainWindow : Window
 
     private Track? FindPlayable(int startIndex, int direction)
     {
-        if (_queue.Count == 0 ||
+        var scope = PlaybackScopeTracks();
+        if (scope.Count == 0 ||
             direction == 0 ||
             startIndex < 0 ||
-            startIndex >= _queue.Count)
+            startIndex >= scope.Count)
         {
             return null;
         }
 
         var index = startIndex;
-        while (index >= 0 && index < _queue.Count)
+        while (index >= 0 && index < scope.Count)
         {
-            var track = _queue[index];
+            var track = scope[index];
             if (IsTrackPlayable(track))
             {
                 return track;
@@ -1501,6 +1523,64 @@ public sealed partial class MainWindow : Window
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The ordered tracks the transport buttons and auto-advance follow. This
+    /// is the list playback was started from, not always the default queue.
+    /// </summary>
+    private IReadOnlyList<Track> PlaybackScopeTracks()
+    {
+        return _playbackScope switch
+        {
+            PlaybackScope.CustomPlaylist => _customPlaylistTracks,
+            PlaybackScope.Single => _currentTrack is null ? [] : [_currentTrack],
+            _ => _queue
+        };
+    }
+
+    private int IndexInPlaybackScope(Track track)
+    {
+        var scope = PlaybackScopeTracks();
+        for (var index = 0; index < scope.Count; index++)
+        {
+            if (ReferenceEquals(scope[index], track) ||
+                string.Equals(scope[index].Path, track.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Points playback at a list. The default queue and a custom playlist keep
+    /// playing to the end of that list; a single track from Recently played
+    /// stops once it ends unless repeat is on.
+    /// </summary>
+    private void SetPlaybackScope(PlaybackScope scope)
+    {
+        _playbackScope = scope;
+    }
+
+    /// <summary>
+    /// Keeps the scope in sync after a custom playlist was edited or reloaded:
+    /// if the playing track is no longer part of that playlist, fall back to
+    /// the default queue rather than stranding playback on an empty scope.
+    /// </summary>
+    private void RefreshPlaybackScope()
+    {
+        if (_playbackScope != PlaybackScope.CustomPlaylist || _currentTrack is null)
+        {
+            return;
+        }
+
+        if (_customPlaylistTracks.Count == 0 ||
+            IndexInPlaybackScope(_currentTrack) < 0)
+        {
+            _playbackScope = PlaybackScope.Queue;
+        }
     }
 
     private static bool IsTrackPlayable(Track track)
@@ -1869,16 +1949,12 @@ public sealed partial class MainWindow : Window
 
     private void UpdateRepeatUi()
     {
-        var glyph = _repeatMode == RepeatMode.One ? "\uE8ED" : "\uE8EE";
         var accent = _repeatMode == RepeatMode.None ? null : GetAccentBrush();
-
-        RepeatIcon.Glyph = glyph;
-        FullRepeatIcon.Glyph = glyph;
-        RepeatIcon.Foreground = accent ?? _repeatIdleForeground;
-        FullRepeatIcon.Foreground = accent ?? _fullRepeatIdleForeground;
-
         var label = Strings.RepeatState(_repeatMode);
         var tooltip = Strings.RepeatTooltip(_repeatMode);
+
+        RepeatIcon.Foreground = accent ?? _repeatIdleForeground;
+        FullRepeatIcon.Foreground = accent ?? _fullRepeatIdleForeground;
 
         ToolTipService.SetToolTip(RepeatButton, tooltip);
         ToolTipService.SetToolTip(FullRepeatButton, tooltip);
@@ -1905,6 +1981,23 @@ public sealed partial class MainWindow : Window
         return _accentBrush;
     }
 
+    /// <summary>
+    /// The secondary text colour used by the transport controls. Resolved from
+    /// app resources because the theme resource lookup is not available from a
+    /// detached element and can silently return no brush.
+    /// </summary>
+    private static SolidColorBrush GetSecondaryTextBrush()
+    {
+        if (Application.Current.Resources is { } resources &&
+            resources.TryGetValue("TextFillColorSecondaryBrush", out var value) &&
+            value is SolidColorBrush brush)
+        {
+            return brush;
+        }
+
+        return new SolidColorBrush(Microsoft.UI.Colors.Gray);
+    }
+
     private void PreviousButton_Click(object sender, RoutedEventArgs e)
     {
         if (_currentTrack is null)
@@ -1918,11 +2011,11 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var index = _queue.IndexOf(_currentTrack);
+        var index = IndexInPlaybackScope(_currentTrack);
         var previous = index > 0 ? FindPlayable(index - 1, -1) : null;
         if (previous is null && _repeatMode == RepeatMode.All)
         {
-            previous = FindPlayable(_queue.Count - 1, -1);
+            previous = FindPlayable(PlaybackScopeTracks().Count - 1, -1);
         }
 
         if (previous is null)
@@ -1951,15 +2044,19 @@ public sealed partial class MainWindow : Window
             {
                 LoadTrack(firstPlayable, autoPlay: true);
             }
-            else
+            else if (_queue.Count > 0)
             {
                 SetStatus(Strings.StatusNoPlayable);
+            }
+            else
+            {
+                SetStatus(Strings.StatusQueueEmpty);
             }
 
             return;
         }
 
-        var index = _queue.IndexOf(_currentTrack);
+        var index = IndexInPlaybackScope(_currentTrack);
         var next = index >= 0 ? FindPlayable(index + 1, 1) : null;
         if (next is null && _repeatMode == RepeatMode.All)
         {
@@ -1980,7 +2077,7 @@ public sealed partial class MainWindow : Window
     {
         if (QueueList.SelectedItem is Track track)
         {
-            await PlayTrackFromUiAsync(track);
+            await PlayTrackInScopeAsync(track, PlaybackScope.Queue);
         }
     }
 
@@ -1999,24 +2096,60 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        await PlayTrackFromUiAsync(track);
+        // Recently played is a history, not a queue: the picked track plays on
+        // its own and stops when it ends unless repeat is turned on.
+        await PlayTrackInScopeAsync(track, PlaybackScope.Single);
     }
 
-    private async Task PlayTrackFromUiAsync(Track track)
+    private Task PlayTrackFromUiAsync(Track track)
     {
-        var queued = _queue.FirstOrDefault(candidate =>
-            string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase));
+        return PlayTrackInScopeAsync(track, GetPlaybackScopeFor(track));
+    }
 
-        if (queued is null)
+    /// <summary>
+    /// The list a track should be played from: the custom playlist it was
+    /// opened from, otherwise the default queue.
+    /// </summary>
+    private PlaybackScope GetPlaybackScopeFor(Track track)
+    {
+        return IsTrackInSelectedCustomPlaylist(track)
+            ? PlaybackScope.CustomPlaylist
+            : PlaybackScope.Queue;
+    }
+
+    private bool IsTrackInSelectedCustomPlaylist(Track track)
+    {
+        return _selectedCustomPlaylist is not null && _customPlaylistTracks.Any(candidate =>
+            ReferenceEquals(candidate, track) ||
+            string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Plays a track from the given list. A track that is not part of that
+    /// list is not inserted into it; playback simply follows the list once the
+    /// track itself finishes.
+    /// </summary>
+    private async Task PlayTrackInScopeAsync(Track track, PlaybackScope scope)
+    {
+        if (scope != PlaybackScope.Single)
         {
-            _queue.Add(track);
-            _knownPaths.Add(track.Path);
-            RefreshQueueUi();
-            PersistPlaylist();
+            // Prefer the instance that already lives in that list so row state
+            // (current/favorite/missing) stays in sync with what is displayed.
+            var listTrack = scope == PlaybackScope.CustomPlaylist
+                ? _customPlaylistTracks.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase))
+                : _queue.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Path, track.Path, StringComparison.OrdinalIgnoreCase));
+            if (listTrack is not null)
+            {
+                track = listTrack;
+            }
         }
-        else
+        else if (_currentTrack is not null &&
+                 string.Equals(_currentTrack.Path, track.Path, StringComparison.OrdinalIgnoreCase))
         {
-            track = queued;
+            // Replaying the single track that is already loaded keeps its state.
+            track = _currentTrack;
         }
 
         if (track.IsMissing)
@@ -2041,6 +2174,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
+        SetPlaybackScope(scope);
         LoadTrack(track, autoPlay: true);
     }
 
@@ -2149,6 +2283,9 @@ public sealed partial class MainWindow : Window
 
         if (wasCurrent)
         {
+            // The default queue is the only list this page can remove from.
+            _playbackScope = PlaybackScope.Queue;
+
             if (_queue.Count == 0)
             {
                 ResetNowPlaying();
@@ -2400,6 +2537,7 @@ public sealed partial class MainWindow : Window
         _queue.Clear();
         _knownPaths.Clear();
         _currentTrack = null;
+        _playbackScope = PlaybackScope.Queue;
 
         ResetNowPlaying();
         RefreshQueueUi();
@@ -2416,6 +2554,7 @@ public sealed partial class MainWindow : Window
         ClearButton.IsEnabled = _queue.Count > 0;
         RefreshVisibleQueue();
         RemoveButton.IsEnabled = QueueList.SelectedItem is Track;
+        RefreshPlaybackScope();
     }
 
     private void UpdateNowPlaying(Track track)
@@ -2623,14 +2762,14 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        if (_repeatMode == RepeatMode.One && _queue.Contains(_currentTrack))
+        if (_repeatMode == RepeatMode.One)
         {
             _player.PlaybackSession.Position = TimeSpan.Zero;
             LoadTrack(_currentTrack, autoPlay: true);
             return;
         }
 
-        var index = _queue.IndexOf(_currentTrack);
+        var index = IndexInPlaybackScope(_currentTrack);
         var next = index >= 0 ? FindPlayable(index + 1, 1) : null;
         if (next is null && _repeatMode == RepeatMode.All)
         {
@@ -3200,4 +3339,20 @@ public sealed partial class MainWindow : Window
         _fallbackStream = null;
         _player.Dispose();
     }
+}
+
+/// <summary>
+/// The list a started track belongs to. Auto-advance and the transport
+/// buttons follow this list instead of always following the default queue.
+/// </summary>
+public enum PlaybackScope
+{
+    /// <summary>The default playlist shown on the main page.</summary>
+    Queue,
+
+    /// <summary>The custom playlist currently open in the sidebar.</summary>
+    CustomPlaylist,
+
+    /// <summary>A single track started from Recently played or a search result.</summary>
+    Single
 }

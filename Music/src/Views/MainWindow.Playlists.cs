@@ -412,6 +412,8 @@ public sealed partial class MainWindow
             ? Strings.CustomStatusEmpty
             : Strings.CustomStatusCount(_customPlaylistTracks.Count);
 
+        RefreshPlaybackScope();
+
         static bool Contains(string? value, string query) =>
             !string.IsNullOrWhiteSpace(value) &&
             value.Contains(query, StringComparison.CurrentCultureIgnoreCase);
@@ -682,6 +684,13 @@ public sealed partial class MainWindow
         _customPlaylists.Remove(item);
         CustomPlaylistsPanel.Children.Remove(item.Root);
         PersistCustomPlaylists();
+
+        if (_playbackScope == PlaybackScope.CustomPlaylist &&
+            _customPlaylistTracks.Any(track => item.Paths.Any(path =>
+                string.Equals(path, track.Path, StringComparison.OrdinalIgnoreCase))))
+        {
+            _playbackScope = PlaybackScope.Queue;
+        }
 
         if (wasSelected)
         {
