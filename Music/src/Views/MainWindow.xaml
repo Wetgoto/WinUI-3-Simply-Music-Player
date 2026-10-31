@@ -349,9 +349,14 @@
                         Grid.Column="0"
                         Width="56"
                         Height="56">
+                        <!--
+                            A translucent well rather than a solid control fill:
+                            on top of the playing-row highlight a solid fill reads
+                            as a raised inner box.
+                        -->
                         <Border
                             CornerRadius="10"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}" />
+                            Background="{ThemeResource SubtleFillColorSecondaryBrush}" />
                         <FontIcon
                             Glyph="&#xE8D6;"
                             FontSize="22"
@@ -502,9 +507,14 @@
                         Grid.Column="0"
                         Width="56"
                         Height="56">
+                        <!--
+                            A translucent well rather than a solid control fill:
+                            on top of the playing-row highlight a solid fill reads
+                            as a raised inner box.
+                        -->
                         <Border
                             CornerRadius="10"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}" />
+                            Background="{ThemeResource SubtleFillColorSecondaryBrush}" />
                         <FontIcon
                             Glyph="&#xE8D6;"
                             FontSize="22"
