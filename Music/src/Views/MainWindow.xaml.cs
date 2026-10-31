@@ -68,8 +68,6 @@ public sealed partial class MainWindow : Window
     private bool _hasInitialized;
     private bool _isMuted;
     private bool _isUpdatingVolume;
-    private bool _isPlayerPageOpen;
-    private bool _isPageTransitioning;
     private bool _playlistReady;
     private double _volumeBeforeMute = 65;
     private RepeatMode _repeatMode = RepeatMode.None;
@@ -77,8 +75,24 @@ public sealed partial class MainWindow : Window
     private Brush? _fullRepeatIdleForeground;
     private SolidColorBrush? _accentBrush;
 
-    /// <summary>Cross-fade duration when switching to or from the player page.</summary>
-    private const int PlayerPageFadeMilliseconds = 200;
+    /// <summary>
+    /// The top-level surfaces of the window. Exactly one of them is visible at
+    /// any moment; <see cref="NavigateTo"/> is the only place that decides which.
+    /// </summary>
+    private enum AppPage
+    {
+        Default,
+        Recent,
+        Favorites,
+        CustomPlaylist,
+        Library,
+        Search,
+        Settings,
+        Player
+    }
+
+    private AppPage _currentPage = AppPage.Default;
+    private AppPage _pageBeforePlayer = AppPage.Default;
 
     public MainWindow()
     {
@@ -96,6 +110,7 @@ public sealed partial class MainWindow : Window
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleBarDragRegion);
+        RootGrid.Loaded += RootGrid_Loaded;
         AppWindow.Title = Title;
         InitializeSettings();
 
@@ -248,6 +263,81 @@ public sealed partial class MainWindow : Window
         int attribute,
         ref int value,
         int valueSize);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    private void RootGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        ApplyTitleBarMetrics();
+
+        // The caption strip has to follow the window when it moves to a display
+        // with a different scale factor, or the buttons no longer fill it.
+        if (RootGrid.XamlRoot is not null)
+        {
+            RootGrid.XamlRoot.Changed -= XamlRoot_Changed;
+            RootGrid.XamlRoot.Changed += XamlRoot_Changed;
+        }
+    }
+
+    private void XamlRoot_Changed(XamlRoot sender, XamlRootChangedEventArgs args)
+    {
+        ApplyTitleBarMetrics();
+    }
+
+    /// <summary>
+    /// Sizes the caption strip to the height the system gives the window
+    /// control buttons, so the three buttons fill the strip exactly instead of
+    /// floating inside a taller or shorter bar.
+    /// </summary>
+    private void ApplyTitleBarMetrics()
+    {
+        if (TitleBarRow is null)
+        {
+            return;
+        }
+
+        var scale = 1.0;
+        try
+        {
+            var dpi = GetDpiForWindow(WindowNative.GetWindowHandle(this));
+            if (dpi > 0)
+            {
+                scale = dpi / 96.0;
+            }
+        }
+        catch
+        {
+            scale = 1.0;
+        }
+
+        // The title bar height is reported in physical pixels; XAML rows are
+        // device-independent, so it has to be divided by the scale factor.
+        var height = 0.0;
+        try
+        {
+            height = AppWindow.TitleBar.Height / scale;
+        }
+        catch
+        {
+            height = 0;
+        }
+
+        if (height is < 24 or > 96)
+        {
+            // Standard Windows caption height, used when the platform does not
+            // report one (for example when the system is running a custom theme).
+            height = 32;
+        }
+
+        TitleBarRow.Height = new GridLength(height);
+
+        if (BackButton is not null)
+        {
+            BackButton.Width = height;
+            BackButton.Height = height;
+        }
+    }
 
     private void ApplyNativeTitleBarTheme(bool dark)
     {
@@ -935,6 +1025,82 @@ public sealed partial class MainWindow : Window
         LibraryPage.Visibility = Visibility.Collapsed;
         SearchPage.Visibility = Visibility.Collapsed;
         SettingsPage.Visibility = Visibility.Collapsed;
+        PlayerPage.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// Switches the window to one page: every other page is collapsed first, so
+    /// a page is never left visible underneath the next one. The player page is
+    /// a full-window surface, so it also takes the rail and the player bar away
+    /// instead of drawing over them.
+    /// </summary>
+    private void NavigateTo(AppPage page)
+    {
+        if (page == AppPage.Player)
+        {
+            if (_currentPage == AppPage.Player)
+            {
+                return;
+            }
+
+            _pageBeforePlayer = _currentPage;
+        }
+
+        _currentPage = page;
+        HideAllPages();
+
+        var home = page != AppPage.Player;
+        HomeSurface.Visibility = home ? Visibility.Visible : Visibility.Collapsed;
+        NavigationRail.Visibility = home ? Visibility.Visible : Visibility.Collapsed;
+        PlayerBar.Visibility = home ? Visibility.Visible : Visibility.Collapsed;
+        BackButton.Visibility = home ? Visibility.Collapsed : Visibility.Visible;
+
+        // A half-finished fade used to leave a surface translucent, which made
+        // the previous page show through the next one. Switching is direct, so
+        // every surface is put back to fully opaque on the way in.
+        HomeSurface.Opacity = 1;
+        NavigationRail.Opacity = 1;
+        PlayerBar.Opacity = 1;
+        PlayerPage.Opacity = 1;
+
+        switch (page)
+        {
+            case AppPage.Default:
+                DefaultListTitleText.Text = Strings.DefaultList;
+                MainWorkspace.Visibility = Visibility.Visible;
+                break;
+
+            case AppPage.Recent:
+                RefreshRecentState();
+                RefreshRecentUi();
+                RecentPage.Visibility = Visibility.Visible;
+                break;
+
+            case AppPage.Favorites:
+                ShowFavoritesPage();
+                break;
+
+            case AppPage.CustomPlaylist:
+                CustomPlaylistPage.Visibility = Visibility.Visible;
+                break;
+
+            case AppPage.Library:
+                RefreshLibrary();
+                LibraryPage.Visibility = Visibility.Visible;
+                break;
+
+            case AppPage.Search:
+                SearchPage.Visibility = Visibility.Visible;
+                break;
+
+            case AppPage.Settings:
+                SettingsPage.Visibility = Visibility.Visible;
+                break;
+
+            case AppPage.Player:
+                PlayerPage.Visibility = Visibility.Visible;
+                break;
+        }
     }
 
     private void SelectSidebarNav(Button button, string key)
@@ -951,8 +1117,7 @@ public sealed partial class MainWindow : Window
         _selectedCustomPlaylist = null;
 
         // Results shown on the search page reflect their source playlists, so
-        // refresh them after the navigation (the page may still be open behind
-        // the one being switched to).
+        // refresh them after the navigation.
         RefreshSearchResults(_lastSearchQuery);
 
         // Only a custom playlist can keep its own play order. Switching away
@@ -962,42 +1127,27 @@ public sealed partial class MainWindow : Window
             _playbackScope = PlaybackScope.Queue;
         }
 
-        if (key == "default")
+        switch (key)
         {
-            HideAllPages();
-            MainWorkspace.Visibility = Visibility.Visible;
-            DefaultListTitleText.Text = Strings.DefaultList;
-            return;
-        }
+            case "default":
+                NavigateTo(AppPage.Default);
+                break;
 
-        if (key == "recent")
-        {
-            RefreshRecentState();
-            RefreshRecentUi();
-            HideAllPages();
-            RecentPage.Visibility = Visibility.Visible;
-            return;
-        }
+            case "recent":
+                NavigateTo(AppPage.Recent);
+                break;
 
-        if (key == "favorites")
-        {
-            HideAllPages();
-            ShowFavoritesPage();
-            return;
-        }
+            case "favorites":
+                NavigateTo(AppPage.Favorites);
+                break;
 
-        if (key == "library")
-        {
-            RefreshLibrary();
-            HideAllPages();
-            LibraryPage.Visibility = Visibility.Visible;
-            return;
-        }
+            case "library":
+                NavigateTo(AppPage.Library);
+                break;
 
-        if (key == "settings")
-        {
-            HideAllPages();
-            SettingsPage.Visibility = Visibility.Visible;
+            case "settings":
+                NavigateTo(AppPage.Settings);
+                break;
         }
     }
 
@@ -1655,110 +1805,47 @@ public sealed partial class MainWindow : Window
         TogglePlayback();
     }
 
-    private async void NowPlayingAreaButton_Click(object sender, RoutedEventArgs e)
+    private void NowPlayingAreaButton_Click(object sender, RoutedEventArgs e)
     {
-        await OpenPlayerPageAsync();
+        OpenPlayerPage();
     }
 
-    private async Task OpenPlayerPageAsync()
+    /// <summary>
+    /// Opens the full-window player page. It is one of the pages the window can
+    /// navigate to, so the rail, the home pages and the player bar are put away
+    /// rather than covered: nothing of the previous page can show through.
+    /// </summary>
+    private void OpenPlayerPage()
     {
-        if (_isPlayerPageOpen || _isPageTransitioning)
-        {
-            return;
-        }
-
-        _isPageTransitioning = true;
-
-        // Cross-fade the whole home view: the pages and the player bar fade out
-        // as the full-window player page fades in over them.
-        PlayerPage.Opacity = 0;
-        PlayerPage.Visibility = Visibility.Visible;
-        BackButton.Visibility = Visibility.Visible;
-        _isPlayerPageOpen = true;
-
-        await Task.WhenAll(
-            AnimateElementOpacityAsync(PlayerPage, 1, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(HomeSurface, 0, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(PlayerBar, 0, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(NavigationRail, 0, PlayerPageFadeMilliseconds));
-
-        HomeSurface.Visibility = Visibility.Collapsed;
-        NavigationRail.Visibility = Visibility.Collapsed;
-        PlayerBar.Visibility = Visibility.Collapsed;
-        HomeSurface.Opacity = 1;
-        PlayerBar.Opacity = 1;
-        NavigationRail.Opacity = 1;
-        _isPageTransitioning = false;
+        NavigateTo(AppPage.Player);
     }
 
-    private async void BackButton_Click(object sender, RoutedEventArgs e)
+    private void BackButton_Click(object sender, RoutedEventArgs e)
     {
-        await ClosePlayerPageAsync();
+        ClosePlayerPage();
     }
 
     private void BackAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        if (!_isPlayerPageOpen || _isPageTransitioning)
+        if (_currentPage != AppPage.Player)
         {
             return;
         }
 
         args.Handled = true;
-        _ = ClosePlayerPageAsync();
+        ClosePlayerPage();
     }
 
-    private async Task ClosePlayerPageAsync()
+    /// <summary>Returns from the player page to the page it was opened from.</summary>
+    private void ClosePlayerPage()
     {
-        if (!_isPlayerPageOpen || _isPageTransitioning)
+        if (_currentPage != AppPage.Player)
         {
             return;
         }
 
-        _isPageTransitioning = true;
-
-        HomeSurface.Visibility = Visibility.Visible;
-        NavigationRail.Visibility = Visibility.Visible;
-        PlayerBar.Visibility = Visibility.Visible;
-        HomeSurface.Opacity = 0;
-        PlayerBar.Opacity = 0;
-        NavigationRail.Opacity = 0;
-        BackButton.Visibility = Visibility.Collapsed;
-
-        await Task.WhenAll(
-            AnimateElementOpacityAsync(PlayerPage, 0, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(HomeSurface, 1, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(PlayerBar, 1, PlayerPageFadeMilliseconds),
-            AnimateElementOpacityAsync(NavigationRail, 1, PlayerPageFadeMilliseconds));
-
-        PlayerPage.Visibility = Visibility.Collapsed;
-        PlayerPage.Opacity = 1;
-        _isPlayerPageOpen = false;
+        NavigateTo(_pageBeforePlayer);
         NowPlayingAreaButton.Focus(FocusState.Programmatic);
-        _isPageTransitioning = false;
-    }
-
-    /// <summary>Fades an element's opacity; used by the page cross-fade.</summary>
-    private static Task AnimateElementOpacityAsync(
-        UIElement element,
-        double targetOpacity,
-        int durationMilliseconds)
-    {
-        var completion = new TaskCompletionSource<bool>();
-        var animation = new DoubleAnimation
-        {
-            To = targetOpacity,
-            Duration = new Duration(TimeSpan.FromMilliseconds(durationMilliseconds)),
-            EnableDependentAnimation = true
-        };
-
-        Storyboard.SetTarget(animation, element);
-        Storyboard.SetTargetProperty(animation, "Opacity");
-
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(animation);
-        storyboard.Completed += (_, _) => completion.TrySetResult(true);
-        storyboard.Begin();
-        return completion.Task;
     }
 
     private void QueueList_ContainerContentChanging(        ListViewBase sender,

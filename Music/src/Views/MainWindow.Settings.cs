@@ -57,7 +57,31 @@ public sealed partial class MainWindow
         AppVersionDetailText.Text = Strings.VersionLine(informational);
         AppVersionTechText.Text = Strings.SdkLine;
 
+        UpdateSwitchStateLabels();
+
         _isApplyingSettings = false;
+    }
+
+    /// <summary>
+    /// The on/off word beside each switch is its own text block: the built-in
+    /// toggle content sits to the right of the switch, and every row needs the
+    /// switch itself flush with the card's right edge, in one column.
+    /// </summary>
+    private void UpdateSwitchStateLabels()
+    {
+        UpdateSwitchStateLabel(PromptPlaylistNameSwitch, PromptPlaylistNameStateText);
+        UpdateSwitchStateLabel(TransparentBackgroundSwitch, TransparentBackgroundStateText);
+        UpdateSwitchStateLabel(ConfirmDeleteSwitch, ConfirmDeleteStateText);
+    }
+
+    private static void UpdateSwitchStateLabel(ToggleSwitch toggle, TextBlock label)
+    {
+        if (toggle is null || label is null)
+        {
+            return;
+        }
+
+        label.Text = toggle.IsOn ? Strings.SwitchOn : Strings.SwitchOff;
     }
 
     private static ThemePreference ParseTheme(string? value)
@@ -261,6 +285,10 @@ public sealed partial class MainWindow
 
         ApplyLocalizedStaticText();
 
+        // The on/off words are set in code, so the tag pass above would have
+        // rewritten them; restore them in the newly selected language.
+        UpdateSwitchStateLabels();
+
         // The version lines are built from the assembly at runtime, so they are
         // re-rendered here after a language switch instead of coming from Tag.
         var informational = GetInformationalVersion();
@@ -411,6 +439,7 @@ public sealed partial class MainWindow
 
         _settings.PromptPlaylistName = PromptPlaylistNameSwitch.IsOn;
         AppSettingsStore.Save(_settings);
+        UpdateSwitchStateLabels();
     }
 
     /// <summary>
@@ -456,6 +485,7 @@ public sealed partial class MainWindow
         ApplyTransparentBackground(TransparentBackgroundSwitch.IsOn);
         _settings.TransparentBackground = TransparentBackgroundSwitch.IsOn;
         AppSettingsStore.Save(_settings);
+        UpdateSwitchStateLabels();
     }
 
     private void ConfirmDeleteSwitch_Toggled(object sender, RoutedEventArgs e)
@@ -467,6 +497,7 @@ public sealed partial class MainWindow
 
         _settings.ConfirmBeforeDelete = ConfirmDeleteSwitch.IsOn;
         AppSettingsStore.Save(_settings);
+        UpdateSwitchStateLabels();
     }
 
     private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

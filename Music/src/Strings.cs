@@ -191,6 +191,10 @@ public static class Strings
     public static string Create => T("创建", "Create");
     public static string Close => T("关闭", "Close");
 
+    // Settings switch state labels, shown just left of each toggle.
+    public static string SwitchOn => T("开", "On");
+    public static string SwitchOff => T("关", "Off");
+
     public static string DeletePlaylistTitle(string name) => T($"删除“{name}”？", $"Delete “{name}”?");
     public static string DeletePlaylistDetail => T("只会删除这个播放列表条目，不会删除音乐文件。", "Only this playlist is deleted. Music files stay untouched.");
 

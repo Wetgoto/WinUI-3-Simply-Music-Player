@@ -115,36 +115,26 @@ public sealed partial class MainWindow
         _searchPageOpen = true;
         _searchReturnPlaylist = null;
 
-        if (RecentPage.Visibility == Visibility.Visible)
+        _searchReturnPage = _currentPage switch
         {
-            _searchReturnPage = "recent";
-        }
-        else if (FavoritesPage.Visibility == Visibility.Visible)
+            AppPage.Recent => "recent",
+            AppPage.Favorites => "favorites",
+            AppPage.CustomPlaylist => "custom",
+            AppPage.Settings => "settings",
+            _ => "default"
+        };
+
+        if (_searchReturnPage == "custom")
         {
-            _searchReturnPage = "favorites";
-        }
-        else if (CustomPlaylistPage.Visibility == Visibility.Visible)
-        {
-            _searchReturnPage = "custom";
             _searchReturnPlaylist = _selectedCustomPlaylist;
         }
-        else if (SettingsPage.Visibility == Visibility.Visible)
-        {
-            _searchReturnPage = "settings";
-        }
-        else
-        {
-            _searchReturnPage = "default";
-        }
 
-        HideAllPages();
-        SearchPage.Visibility = Visibility.Visible;
+        NavigateTo(AppPage.Search);
     }
 
     private void ExitSearchPage()
     {
         _searchPageOpen = false;
-        SearchPage.Visibility = Visibility.Collapsed;
         RestorePageAfterSearch();
     }
 
@@ -153,31 +143,25 @@ public sealed partial class MainWindow
         switch (_searchReturnPage)
         {
             case "recent":
-                HideAllPages();
-                RecentPage.Visibility = Visibility.Visible;
-                RefreshRecentUi();
+                NavigateTo(AppPage.Recent);
                 break;
 
             case "favorites":
-                HideAllPages();
-                ShowFavoritesPage();
+                NavigateTo(AppPage.Favorites);
                 break;
 
             case "custom" when _searchReturnPlaylist is not null:
-                HideAllPages();
-                CustomPlaylistPage.Visibility = Visibility.Visible;
+                NavigateTo(AppPage.CustomPlaylist);
                 CustomPlaylistTitleText.Text = _searchReturnPlaylist.Name;
                 _ = LoadCustomPlaylistTracksAsync(_searchReturnPlaylist);
                 break;
 
             case "settings":
-                HideAllPages();
-                SettingsPage.Visibility = Visibility.Visible;
+                NavigateTo(AppPage.Settings);
                 break;
 
             default:
-                HideAllPages();
-                MainWorkspace.Visibility = Visibility.Visible;
+                NavigateTo(AppPage.Default);
                 break;
         }
     }

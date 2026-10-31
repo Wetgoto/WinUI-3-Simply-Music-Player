@@ -357,8 +357,7 @@ public sealed partial class MainWindow
         _selectedCustomPlaylist = item;
         item.Button.Background = CreateNavSelectionBrush();
 
-        HideAllPages();
-        CustomPlaylistPage.Visibility = Visibility.Visible;
+        NavigateTo(AppPage.CustomPlaylist);
         CustomPlaylistTitleText.Text = item.Name;
         CustomSearchBox.Text = string.Empty;
         CustomSearchBox.Visibility = Visibility.Collapsed;

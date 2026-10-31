@@ -619,7 +619,13 @@
             separate rows means no page can draw under the bar.
         -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
+            <!--
+                The caption row is sized in code to the height the system uses
+                for the window control buttons, so the strip and the three
+                buttons always line up. 40 is only the value used before the
+                first layout pass.
+            -->
+            <RowDefinition x:Name="TitleBarRow" Height="40" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -633,7 +639,6 @@
             x:Name="AppTitleBar"
             Grid.Row="0"
             Grid.ColumnSpan="2"
-            Height="40"
             Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -2514,16 +2519,29 @@
                                         TextWrapping="Wrap" />
                                 </StackPanel>
 
-                                <ToggleSwitch
-                                    Tag="local:LocalizedTag(Text='新建播放列表时提示命名', English='Ask for a name when creating a playlist')"
-                                    x:Name="PromptPlaylistNameSwitch"
-                                    HorizontalAlignment="Right"
+                                <StackPanel
                                     Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    OnContent="开"
-                                    OffContent="关"
-                                    Toggled="PromptPlaylistNameSwitch_Toggled"
-                                    AutomationProperties.Name="新建播放列表时提示命名" />
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="PromptPlaylistNameStateText"
+                                        Text="开"
+                                        FontSize="12"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        AutomationProperties.AccessibilityView="Raw" />
+                                    <ToggleSwitch
+                                        Tag="local:LocalizedTag(Text='新建播放列表时提示命名', English='Ask for a name when creating a playlist')"
+                                        x:Name="PromptPlaylistNameSwitch"
+                                        MinWidth="0"
+                                        Width="40"
+                                        VerticalAlignment="Center"
+                                        OnContent=""
+                                        OffContent=""
+                                        Toggled="PromptPlaylistNameSwitch_Toggled"
+                                        AutomationProperties.Name="新建播放列表时提示命名" />
+                                </StackPanel>
                             </Grid>
 
                             <Border
@@ -2552,16 +2570,29 @@
                                         TextWrapping="Wrap" />
                                 </StackPanel>
 
-                                <ToggleSwitch
-                                    Tag="local:LocalizedTag(Text='背景透明效果', English='Transparent background')"
-                                    x:Name="TransparentBackgroundSwitch"
-                                    HorizontalAlignment="Right"
+                                <StackPanel
                                     Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    OnContent="开"
-                                    OffContent="关"
-                                    Toggled="TransparentBackgroundSwitch_Toggled"
-                                    AutomationProperties.Name="背景透明效果" />
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="TransparentBackgroundStateText"
+                                        Text="开"
+                                        FontSize="12"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        AutomationProperties.AccessibilityView="Raw" />
+                                    <ToggleSwitch
+                                        Tag="local:LocalizedTag(Text='背景透明效果', English='Transparent background')"
+                                        x:Name="TransparentBackgroundSwitch"
+                                        MinWidth="0"
+                                        Width="40"
+                                        VerticalAlignment="Center"
+                                        OnContent=""
+                                        OffContent=""
+                                        Toggled="TransparentBackgroundSwitch_Toggled"
+                                        AutomationProperties.Name="背景透明效果" />
+                                </StackPanel>
                             </Grid>
 
                             <Border
@@ -2590,16 +2621,29 @@
                                         TextWrapping="Wrap" />
                                 </StackPanel>
 
-                                <ToggleSwitch
-                                    Tag="local:LocalizedTag(Text='删除时显示确认窗口', English='Confirm before deleting')"
-                                    x:Name="ConfirmDeleteSwitch"
-                                    HorizontalAlignment="Right"
+                                <StackPanel
                                     Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    OnContent="开"
-                                    OffContent="关"
-                                    Toggled="ConfirmDeleteSwitch_Toggled"
-                                    AutomationProperties.Name="删除时显示确认窗口" />
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="ConfirmDeleteStateText"
+                                        Text="开"
+                                        FontSize="12"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        AutomationProperties.AccessibilityView="Raw" />
+                                    <ToggleSwitch
+                                        Tag="local:LocalizedTag(Text='删除时显示确认窗口', English='Confirm before deleting')"
+                                        x:Name="ConfirmDeleteSwitch"
+                                        MinWidth="0"
+                                        Width="40"
+                                        VerticalAlignment="Center"
+                                        OnContent=""
+                                        OffContent=""
+                                        Toggled="ConfirmDeleteSwitch_Toggled"
+                                        AutomationProperties.Name="删除时显示确认窗口" />
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -2685,7 +2729,9 @@
         <!--
             Full-window player page. It spans both rows and columns so it covers
             the player bar as well, and it is declared after the rail so it is
-            the topmost layer.
+            the topmost layer. Navigation shows exactly one page at a time: the
+            rail, the home surface and the player bar are collapsed while this
+            page is open, so nothing can show through its transparent fill.
         -->
         <Grid
             x:Name="PlayerPage"
@@ -2693,7 +2739,6 @@
             Grid.RowSpan="2"
             Grid.ColumnSpan="2"
             Background="Transparent"
-            Opacity="0"
             Visibility="Collapsed"
             SizeChanged="PlayerPage_SizeChanged">
             <Grid
